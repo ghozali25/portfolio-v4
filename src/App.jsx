@@ -1,5 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import "./index.css";
 import Home from "./Pages/Home";
 import About from "./Pages/About";
@@ -46,9 +45,9 @@ const LandingPage = ({ showWelcome, setShowWelcome }) => {
   );
 };
 
-const ProjectPageLayout = () => (
+const ProjectPageLayout = ({ id }) => (
   <>
-    <ProjectDetails />
+    <ProjectDetails id={id} />
     <footer>
       <center>
         <hr className="my-3 border-gray-400 opacity-15 sm:mx-auto lg:my-6 text-center" />
@@ -65,15 +64,35 @@ const ProjectPageLayout = () => (
 
 function App() {
   const [showWelcome, setShowWelcome] = useState(true);
+  const [hash, setHash] = useState(typeof window !== 'undefined' ? window.location.hash : '');
+
+  useEffect(() => {
+    const onHashChange = () => setHash(window.location.hash || '');
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  const route = useMemo(() => {
+    if (hash.startsWith('#project/')) {
+      const id = hash.replace('#project/', '');
+      return { name: 'project', id };
+    }
+    if (hash === '#admin') return { name: 'admin' };
+    return { name: 'home' };
+  }, [hash]);
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage showWelcome={showWelcome} setShowWelcome={setShowWelcome} />} />
-        <Route path="/project/:id" element={<ProjectPageLayout />} />
-        <Route path="/admin" element={<Admin />} />
-      </Routes>
-    </BrowserRouter>
+    <>
+      {route.name === 'home' && (
+        <LandingPage showWelcome={showWelcome} setShowWelcome={setShowWelcome} />
+      )}
+      {route.name === 'project' && (
+        <ProjectPageLayout id={route.id} />
+      )}
+      {route.name === 'admin' && (
+        <Admin />
+      )}
+    </>
   );
 }
 
