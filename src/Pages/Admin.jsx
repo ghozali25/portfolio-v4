@@ -1,0 +1,348 @@
+import React, { useEffect, useState } from "react";
+import { db, storage } from "../firebase";
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import Swal from "sweetalert2";
+
+const Admin = () => {
+  // Auth
+  const [isAuthed, setIsAuthed] = useState(() => localStorage.getItem("admin_auth") === "1");
+  const [loginForm, setLoginForm] = useState({ user: "", pass: "" });
+
+  useEffect(() => {
+    if (isAuthed) {
+      loadData();
+    }
+  }, [isAuthed]);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (loginForm.user === "ali" && loginForm.pass === "ali123") {
+      localStorage.setItem("admin_auth", "1");
+      setIsAuthed(true);
+    } else {
+      Swal.fire("Login gagal", "Username atau password salah", "error");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("admin_auth");
+    setIsAuthed(false);
+  };
+
+  // Project form state
+  const [projectForm, setProjectForm] = useState({
+    Title: "",
+    Description: "",
+    Link: "",
+    Github: "",
+    TechStack: "",
+    Features: "",
+    Img: null,
+  });
+  const [isSavingProject, setIsSavingProject] = useState(false);
+  const [projects, setProjects] = useState([]);
+  const [editingProjectId, setEditingProjectId] = useState(null);
+
+  // Certificate form state
+  const [certificateImg, setCertificateImg] = useState(null);
+  const [isSavingCertificate, setIsSavingCertificate] = useState(false);
+  const [certificates, setCertificates] = useState([]);
+  const [editingCertificateId, setEditingCertificateId] = useState(null);
+
+  const handleProjectChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "Img") {
+      setProjectForm((prev) => ({ ...prev, Img: files?.[0] || null }));
+    } else {
+      setProjectForm((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const resetProjectForm = () => {
+    setProjectForm({ Title: "", Description: "", Link: "", Github: "", TechStack: "", Features: "", Img: null });
+    setEditingProjectId(null);
+  };
+
+  const onCreateProject = async (e) => {
+    e.preventDefault();
+    if (!projectForm.Title || !projectForm.Description || !projectForm.Img) {
+      Swal.fire("Required", "Title, Description, and Image are required", "warning");
+      return;
+    }
+
+    setIsSavingProject(true);
+    try {
+      // Upload image
+      const fileRef = ref(storage, `projects/${Date.now()}_${projectForm.Img.name}`);
+      await uploadBytes(fileRef, projectForm.Img);
+      const ImgUrl = await getDownloadURL(fileRef);
+
+      // Prepare arrays
+      const TechStack = projectForm.TechStack
+        ? projectForm.TechStack.split(",").map((s) => s.trim()).filter(Boolean)
+        : [];
+      const Features = projectForm.Features
+        ? projectForm.Features.split(",").map((s) => s.trim()).filter(Boolean)
+        : [];
+
+      // Save to Firestore (collection name matches existing code)
+      await addDoc(collection(db, "projects"), {
+        Title: projectForm.Title,
+        Description: projectForm.Description,
+        Link: projectForm.Link,
+        Github: projectForm.Github || "",
+        TechStack,
+        Features,
+        Img: ImgUrl,
+      });
+
+      Swal.fire("Success", "Project created", "success");
+      resetProjectForm();
+      await loadProjects();
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to create project", "error");
+    } finally {
+      setIsSavingProject(false);
+    }
+  };
+
+  const onCreateCertificate = async (e) => {
+    e.preventDefault();
+    if (!certificateImg) {
+      Swal.fire("Required", "Certificate image is required", "warning");
+      return;
+    }
+    setIsSavingCertificate(true);
+    try {
+      const fileRef = ref(storage, `certificates/${Date.now()}_${certificateImg.name}`);
+      await uploadBytes(fileRef, certificateImg);
+      const ImgUrl = await getDownloadURL(fileRef);
+
+      await addDoc(collection(db, "certificates"), {
+        Img: ImgUrl,
+      });
+
+      Swal.fire("Success", "Certificate added", "success");
+      setCertificateImg(null);
+      const input = document.getElementById("certificate-input");
+      if (input) input.value = "";
+      await loadCertificates();
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to add certificate", "error");
+    } finally {
+      setIsSavingCertificate(false);
+    }
+  };
+
+  // Loaders
+  const loadProjects = async () => {
+    const snap = await getDocs(collection(db, "projects"));
+    const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    setProjects(list);
+  };
+
+  const loadCertificates = async () => {
+    const snap = await getDocs(collection(db, "certificates"));
+    const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    setCertificates(list);
+  };
+
+  const loadData = async () => {
+    await Promise.all([loadProjects(), loadCertificates()]);
+  };
+
+  // Edit Project
+  const startEditProject = (p) => {
+    setEditingProjectId(p.id);
+    setProjectForm({
+      Title: p.Title || "",
+      Description: p.Description || "",
+      Link: p.Link || "",
+      Github: p.Github || "",
+      TechStack: (p.TechStack || []).join(","),
+      Features: (p.Features || []).join(","),
+      Img: null,
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const saveEditProject = async (e) => {
+    e.preventDefault();
+    if (!editingProjectId) return;
+    setIsSavingProject(true);
+    try {
+      let ImgUrl;
+      if (projectForm.Img) {
+        const fileRef = ref(storage, `projects/${Date.now()}_${projectForm.Img.name}`);
+        await uploadBytes(fileRef, projectForm.Img);
+        ImgUrl = await getDownloadURL(fileRef);
+      }
+      const TechStack = projectForm.TechStack ? projectForm.TechStack.split(",").map(s=>s.trim()).filter(Boolean) : [];
+      const Features = projectForm.Features ? projectForm.Features.split(",").map(s=>s.trim()).filter(Boolean) : [];
+      const payload = {
+        Title: projectForm.Title,
+        Description: projectForm.Description,
+        Link: projectForm.Link,
+        Github: projectForm.Github || "",
+        TechStack,
+        Features,
+      };
+      if (ImgUrl) payload.Img = ImgUrl;
+      await updateDoc(doc(db, "projects", editingProjectId), payload);
+      Swal.fire("Updated", "Project updated", "success");
+      resetProjectForm();
+      await loadProjects();
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to update project", "error");
+    } finally {
+      setIsSavingProject(false);
+    }
+  };
+
+  const deleteProject = async (p) => {
+    const res = await Swal.fire({ title: "Delete?", text: p.Title, icon: "warning", showCancelButton: true });
+    if (!res.isConfirmed) return;
+    await deleteDoc(doc(db, "projects", p.id));
+    await loadProjects();
+    Swal.fire("Deleted", "Project removed", "success");
+  };
+
+  // Delete certificate
+  const deleteCertificate = async (c) => {
+    const res = await Swal.fire({ title: "Delete certificate?", icon: "warning", showCancelButton: true });
+    if (!res.isConfirmed) return;
+    await deleteDoc(doc(db, "certificates", c.id));
+    await loadCertificates();
+    Swal.fire("Deleted", "Certificate removed", "success");
+  };
+
+  return (
+    <div className="min-h-screen bg-[#030014] text-white px-[5%] sm:px-[10%] py-10">
+      {!isAuthed ? (
+        <div className="max-w-md mx-auto bg-white/5 border border-white/10 rounded-2xl p-6">
+          <h1 className="text-2xl font-bold mb-4">Admin Login</h1>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm mb-1">Username</label>
+              <input className="w-full p-3 rounded-lg bg-white/10 border border-white/10" value={loginForm.user} onChange={(e)=>setLoginForm({...loginForm, user:e.target.value})} />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Password</label>
+              <input type="password" className="w-full p-3 rounded-lg bg-white/10 border border-white/10" value={loginForm.pass} onChange={(e)=>setLoginForm({...loginForm, pass:e.target.value})} />
+            </div>
+            <button type="submit" className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7]">Login</button>
+          </form>
+        </div>
+      ) : (
+      <>
+      <h1 className="text-3xl md:text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-[#6366f1] to-[#a855f7]">Admin Panel</h1>
+      <div className="flex items-center justify-between mb-6">
+        <p className="text-gray-400">Tambah, edit, hapus Projects dan Certificates. Data Firebase (Firestore + Storage).</p>
+        <button onClick={handleLogout} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10">Logout</button>
+      </div>
+
+      {/* Project Form */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-semibold mb-4">{editingProjectId ? 'Edit Project' : 'Create Project'}</h2>
+        <form onSubmit={editingProjectId ? saveEditProject : onCreateProject} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Title</label>
+            <input name="Title" value={projectForm.Title} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" required />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Link (Live)</label>
+            <input name="Link" value={projectForm.Link} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Github</label>
+            <input name="Github" value={projectForm.Github} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" />
+          </div>
+          <div className="col-span-1 md:col-span-2">
+            <label className="block text-sm text-gray-300 mb-1">Description</label>
+            <textarea name="Description" value={projectForm.Description} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" rows={3} required />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Tech Stack (pisahkan dengan koma)</label>
+            <input name="TechStack" value={projectForm.TechStack} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" placeholder="React,Tailwind,Firebase" />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Features (pisahkan dengan koma)</label>
+            <input name="Features" value={projectForm.Features} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" placeholder="Auth,Dashboard,etc" />
+          </div>
+          <div className="col-span-1 md:col-span-2">
+            <label className="block text-sm text-gray-300 mb-1">Image {editingProjectId ? '(kosongkan jika tidak ganti)' : ''}</label>
+            <input name="Img" type="file" accept="image/*" onChange={handleProjectChange} className="w-full" { ...(projectForm.Img ? {} : {}) } />
+          </div>
+          <div className="col-span-1 md:col-span-2 mt-2 flex gap-3">
+            <button type="submit" disabled={isSavingProject} className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
+              {isSavingProject ? (editingProjectId ? "Updating..." : "Saving...") : (editingProjectId ? "Update Project" : "Save Project")}
+            </button>
+            {editingProjectId && (
+              <button type="button" onClick={resetProjectForm} className="px-6 py-3 rounded-lg bg-white/10 border border-white/10">
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {/* Project List */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-semibold mb-4">Projects</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {projects.map((p) => (
+            <div key={p.id} className="p-4 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">{p.Title}</h3>
+                <div className="flex gap-2">
+                  <button onClick={()=>startEditProject(p)} className="px-3 py-1 rounded bg-white/10">Edit</button>
+                  <button onClick={()=>deleteProject(p)} className="px-3 py-1 rounded bg-red-500/20 text-red-300">Delete</button>
+                </div>
+              </div>
+              <p className="text-sm text-gray-400 line-clamp-2">{p.Description}</p>
+            </div>
+          ))}
+          {projects.length === 0 && <p className="text-gray-400">Belum ada project.</p>}
+        </div>
+      </div>
+
+      {/* Certificate Form */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8">
+        <h2 className="text-xl font-semibold mb-4">Add Certificate</h2>
+        <form onSubmit={onCreateCertificate} className="grid grid-cols-1 gap-4">
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">Certificate Image</label>
+            <input id="certificate-input" type="file" accept="image/*" onChange={(e) => setCertificateImg(e.target.files?.[0] || null)} className="w-full" required />
+          </div>
+          <div className="mt-2">
+            <button type="submit" disabled={isSavingCertificate} className="w-full md:w-auto px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
+              {isSavingCertificate ? "Saving..." : "Save Certificate"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Certificate List */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mt-10">
+        <h2 className="text-xl font-semibold mb-4">Certificates</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {certificates.map((c) => (
+            <div key={c.id} className="relative group">
+              <img src={c.Img} alt="cert" className="w-full h-auto rounded-xl border border-white/10" />
+              <button onClick={()=>deleteCertificate(c)} className="absolute top-2 right-2 px-3 py-1 rounded bg-red-500/70 text-white text-sm opacity-0 group-hover:opacity-100 transition">Delete</button>
+            </div>
+          ))}
+          {certificates.length === 0 && <p className="text-gray-400">Belum ada certificate.</p>}
+        </div>
+      </div>
+      </>
+      )}
+    </div>
+  );
+};
+
+export default Admin;
