@@ -23,6 +23,20 @@ const Admin = () => {
     }
   };
 
+  const deleteCvLink = async () => {
+    const res = await Swal.fire({ title: 'Delete CV link?', icon: 'warning', showCancelButton: true });
+    if (!res.isConfirmed) return;
+    try {
+      await supabase.storage.from('profile-images').remove(['about/cv_link.txt']);
+      setCvLink("");
+      if (typeof window !== 'undefined') localStorage.setItem('about_version', String(Date.now()));
+      Swal.fire('Deleted', 'CV link removed', 'success');
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Error', 'Failed to delete CV link', 'error');
+    }
+  };
+
   const loadCvLink = async () => {
     try {
       const { data: list, error: listErr } = await supabase.storage.from('profile-images').list('about', { limit: 100 });
@@ -609,6 +623,17 @@ const Admin = () => {
           className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none"
           value={cvLink}
           onChange={(e)=>setCvLink(e.target.value)}
+          onPaste={(e)=>{
+            const text = (e.clipboardData || window.clipboardData)?.getData('text');
+            if (text) { e.preventDefault(); setCvLink(text.trim()); }
+          }}
+          onDrop={(e)=>{
+            e.preventDefault();
+            const text = e.dataTransfer?.getData('text/plain');
+            if (text) setCvLink(text.trim());
+          }}
+          spellCheck={false}
+          autoComplete="off"
         />
         <div className="mt-3 flex gap-3">
           <button onClick={saveCvLink} disabled={cvSaving} className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
