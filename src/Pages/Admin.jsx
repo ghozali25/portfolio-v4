@@ -23,6 +23,23 @@ const Admin = () => {
     }
   };
 
+  const loadCvLink = async () => {
+    try {
+      const { data: list, error: listErr } = await supabase.storage.from('profile-images').list('about', { limit: 100 });
+      if (listErr) { console.warn(listErr.message); }
+      const has = (list || []).some((f) => f.name === 'cv_link.txt');
+      if (!has) { setCvLink(""); return; }
+      const { data } = supabase.storage.from('profile-images').getPublicUrl('about/cv_link.txt');
+      const url = data?.publicUrl;
+      if (!url) { setCvLink(""); return; }
+      const res = await fetch(url);
+      const text = await res.text();
+      setCvLink((text || "").trim());
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const saveAboutSummary = async () => {
     setAboutSummarySaving(true);
     try {
@@ -78,6 +95,8 @@ const Admin = () => {
       if (upErr) throw upErr;
       const { data } = supabase.storage.from('profile-images').getPublicUrl(path);
       setAboutPhotoUrl(data?.publicUrl || "");
+      if (aboutPreviewUrl) { URL.revokeObjectURL(aboutPreviewUrl); setAboutPreviewUrl(""); }
+      setAboutSelectedFile(null);
       Swal.fire('Success', 'About photo updated', 'success');
     } catch (e) {
       console.error(e);
@@ -130,11 +149,28 @@ const Admin = () => {
   const [aboutUploading, setAboutUploading] = useState(false);
   const [aboutSummary, setAboutSummary] = useState("");
   const [aboutSummarySaving, setAboutSummarySaving] = useState(false);
+  const [cvLink, setCvLink] = useState("");
+  const [cvSaving, setCvSaving] = useState(false);
+  const [projectImgPreview, setProjectImgPreview] = useState("");
+  const [certificatePreview, setCertificatePreview] = useState("");
+  const [aboutSelectedFile, setAboutSelectedFile] = useState(null);
+  const [aboutPreviewUrl, setAboutPreviewUrl] = useState("");
 
   const handleProjectChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "Img") {
-      setProjectForm((prev) => ({ ...prev, Img: files?.[0] || null }));
+      const file = files?.[0] || null;
+      setProjectForm((prev) => ({ ...prev, Img: file }));
+      if (file) {
+        const url = URL.createObjectURL(file);
+        setProjectImgPreview((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return url;
+        });
+      } else {
+        if (projectImgPreview) URL.revokeObjectURL(projectImgPreview);
+        setProjectImgPreview("");
+      }
     } else {
       setProjectForm((prev) => ({ ...prev, [name]: value }));
     }
@@ -221,6 +257,7 @@ const Admin = () => {
 
       Swal.fire("Success", "Certificate added", "success");
       setCertificateImg(null);
+      if (certificatePreview) { URL.revokeObjectURL(certificatePreview); setCertificatePreview(""); }
       const input = document.getElementById("certificate-input");
       if (input) input.value = "";
       await loadCertificates();
@@ -263,7 +300,7 @@ const Admin = () => {
   };
 
   const loadData = async () => {
-    await Promise.all([loadProjects(), loadCertificates(), loadAboutPhoto(), loadAboutSummary()]);
+    await Promise.all([loadProjects(), loadCertificates(), loadAboutPhoto(), loadAboutSummary(), loadCvLink()]);
   };
 
   // Helpers
@@ -375,6 +412,27 @@ const Admin = () => {
               <label className="block text-sm mb-1">Username</label>
               <input className="w-full p-3 rounded-lg bg-white/10 border border-white/10" value={loginForm.user} onChange={(e)=>setLoginForm({...loginForm, user:e.target.value})} />
             </div>
+
+      {/* About CV Link */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-semibold mb-4">About CV Link</h2>
+        <input
+          type="url"
+          placeholder="https://..."
+          className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none"
+          value={cvLink}
+          onChange={(e)=>setCvLink(e.target.value)}
+        />
+        <div className="mt-3 flex gap-3">
+          <button onClick={saveCvLink} disabled={cvSaving} className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
+            {cvSaving ? 'Saving...' : 'Save'}
+          </button>
+          {cvLink && (
+            <button onClick={deleteCvLink} className="px-4 py-2 rounded-lg bg-red-500/20 text-red-300">Delete</button>
+          )}
+        </div>
+        <p className="text-xs text-gray-400 mt-2">Disimpan di Storage: profile-images/about/cv_link.txt</p>
+      </div>
             <div>
               <label className="block text-sm mb-1">Password</label>
               <input type="password" className="w-full p-3 rounded-lg bg-white/10 border border-white/10" value={loginForm.pass} onChange={(e)=>setLoginForm({...loginForm, pass:e.target.value})} />
@@ -420,7 +478,17 @@ const Admin = () => {
           </div>
           <div className="col-span-1 md:col-span-2">
             <label className="block text-sm text-gray-300 mb-1">Image {editingProjectId ? '(kosongkan jika tidak ganti)' : ''}</label>
-            <input name="Img" type="file" accept="image/*" onChange={handleProjectChange} className="w-full" { ...(projectForm.Img ? {} : {}) } />
+            <input name="Img" type="file" accept="image/*" onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              setProjectForm({ ...projectForm, Img: file });
+              if (projectImgPreview) { URL.revokeObjectURL(projectImgPreview); }
+              if (file) setProjectImgPreview(URL.createObjectURL(file)); else setProjectImgPreview("");
+            }} className="w-full" />
+            {projectImgPreview && (
+              <div className="mt-3">
+                <img src={projectImgPreview} alt="preview" className="w-48 h-32 object-cover rounded-lg border border-white/10" />
+              </div>
+            )}
           </div>
           <div className="col-span-1 md:col-span-2 mt-2 flex gap-3">
             <button type="submit" disabled={isSavingProject} className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
@@ -467,12 +535,33 @@ const Admin = () => {
             )}
           </div>
           <div className="flex-1 space-y-3">
-            <input id="about-photo-input" type="file" accept="image/*" className="w-full" onChange={(e)=>uploadAboutPhoto(e.target.files?.[0] || null)} disabled={aboutUploading} />
+            <input
+              id="about-photo-input"
+              type="file"
+              accept="image/*"
+              className="w-full"
+              onChange={(e)=>{
+                const file = e.target.files?.[0] || null;
+                setAboutSelectedFile(file);
+                if (aboutPreviewUrl) { URL.revokeObjectURL(aboutPreviewUrl); }
+                if (file) setAboutPreviewUrl(URL.createObjectURL(file)); else setAboutPreviewUrl("");
+              }}
+              disabled={aboutUploading}
+            />
+            {aboutPreviewUrl && (
+              <div className="mt-2">
+                <p className="text-xs text-gray-400 mb-1">Preview (belum diupload):</p>
+                <img src={aboutPreviewUrl} alt="about preview" className="w-32 h-32 object-cover rounded-full border border-white/10" />
+              </div>
+            )}
             <div className="flex gap-3">
               <button onClick={() => {
                 const el = document.getElementById('about-photo-input');
                 if (el) el.click();
-              }} className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60" disabled={aboutUploading}>
+              }} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10" disabled={aboutUploading}>
+                Pilih File
+              </button>
+              <button onClick={() => uploadAboutPhoto(aboutSelectedFile)} className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60" disabled={aboutUploading || !aboutSelectedFile}>
                 {aboutUploading ? 'Uploading...' : 'Upload / Replace'}
               </button>
               {aboutPhotoUrl && (
@@ -510,7 +599,24 @@ const Admin = () => {
         <form onSubmit={onCreateCertificate} className="grid grid-cols-1 gap-4">
           <div>
             <label className="block text-sm text-gray-300 mb-1">Certificate Image</label>
-            <input id="certificate-input" type="file" accept="image/*" onChange={(e) => setCertificateImg(e.target.files?.[0] || null)} className="w-full" required />
+            <input
+              id="certificate-input"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                setCertificateImg(file);
+                if (certificatePreview) { URL.revokeObjectURL(certificatePreview); }
+                if (file) setCertificatePreview(URL.createObjectURL(file)); else setCertificatePreview("");
+              }}
+              className="w-full"
+              required
+            />
+            {certificatePreview && (
+              <div className="mt-3">
+                <img src={certificatePreview} alt="preview" className="w-48 h-32 object-cover rounded-lg border border-white/10" />
+              </div>
+            )}
           </div>
           <div className="mt-2">
             <button type="submit" disabled={isSavingCertificate} className="w-full md:w-auto px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">

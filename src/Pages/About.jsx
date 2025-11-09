@@ -121,6 +121,7 @@ const StatCard = memo(({ icon: Icon, color, value, label, description, animation
 
 const AboutPage = () => {
   const [aboutSummary, setAboutSummary] = useState("");
+  const [cvLink, setCvLink] = useState("");
   // Memoized calculations
   const { totalProjects, totalCertificates, YearExperience } = useMemo(() => {
     const storedProjects = JSON.parse(localStorage.getItem("projects") || "[]");
@@ -136,6 +137,24 @@ const AboutPage = () => {
       totalCertificates: storedCertificates.length,
       YearExperience: experience
     };
+  }, []);
+
+  // Load CV link from Supabase Storage
+  useEffect(() => {
+    const loadCvLink = async () => {
+      try {
+        const { data } = supabase.storage.from('profile-images').getPublicUrl('about/cv_link.txt');
+        const url = data?.publicUrl;
+        if (!url) return;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) return;
+        const text = await res.text();
+        setCvLink(text?.trim() || "");
+      } catch (_) {
+        // ignore
+      }
+    };
+    loadCvLink();
   }, []);
 
   // Optimized AOS initialization
@@ -228,7 +247,7 @@ const AboutPage = () => {
             </p>
 
             <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 lg:gap-4 lg:px-0 w-full">
-              <a href="https://drive.google.com/drive/folders/1BOm51Grsabb3zj6Xk27K-iRwI1zITcpo" className="w-full lg:w-auto">
+              <a href={cvLink || "https://drive.google.com/drive/folders/1BOm51Grsabb3zj6Xk27K-iRwI1zITcpo"} className="w-full lg:w-auto" target="_blank" rel="noopener noreferrer">
               <button 
                 data-aos="fade-up"
                 data-aos-duration="800"
