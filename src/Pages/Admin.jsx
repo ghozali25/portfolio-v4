@@ -158,6 +158,15 @@ const Admin = () => {
     await Promise.all([loadProjects(), loadCertificates()]);
   };
 
+  // Helpers
+  const getStoragePathFromUrl = (publicUrl) => {
+    if (!publicUrl) return null;
+    const marker = '/storage/v1/object/public/profile-images/';
+    const idx = publicUrl.indexOf(marker);
+    if (idx === -1) return null;
+    return publicUrl.substring(idx + marker.length);
+  };
+
   // Edit Project
   const startEditProject = (p) => {
     setEditingProjectId(p.id);
@@ -213,8 +222,16 @@ const Admin = () => {
   const deleteProject = async (p) => {
     const res = await Swal.fire({ title: "Delete?", text: p.Title, icon: "warning", showCancelButton: true });
     if (!res.isConfirmed) return;
+    // Try remove image from storage (best-effort)
+    try {
+      const path = getStoragePathFromUrl(p.Img);
+      if (path) {
+        await supabase.storage.from('profile-images').remove([path]);
+      }
+    } catch (e) { console.warn('Storage remove failed:', e?.message || e); }
+
     const { error } = await supabase.from('projects').delete().eq('id', p.id);
-    if (error) { console.error(error); return; }
+    if (error) { console.error(error); Swal.fire("Error", error.message || "Failed to delete project", "error"); return; }
     await loadProjects();
     Swal.fire("Deleted", "Project removed", "success");
   };
@@ -223,8 +240,16 @@ const Admin = () => {
   const deleteCertificate = async (c) => {
     const res = await Swal.fire({ title: "Delete certificate?", icon: "warning", showCancelButton: true });
     if (!res.isConfirmed) return;
+    // Try remove image from storage (best-effort)
+    try {
+      const path = getStoragePathFromUrl(c.Img);
+      if (path) {
+        await supabase.storage.from('profile-images').remove([path]);
+      }
+    } catch (e) { console.warn('Storage remove failed:', e?.message || e); }
+
     const { error } = await supabase.from('certificates').delete().eq('id', c.id);
-    if (error) { console.error(error); return; }
+    if (error) { console.error(error); Swal.fire("Error", error.message || "Failed to delete certificate", "error"); return; }
     await loadCertificates();
     Swal.fire("Deleted", "Certificate removed", "success");
   };
