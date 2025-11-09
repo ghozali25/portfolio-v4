@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { db, storage } from "../firebase";
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { supabase } from "../lib/supabaseClient";
 import Swal from "sweetalert2";
 
 const Admin = () => {
@@ -73,10 +71,12 @@ const Admin = () => {
 
     setIsSavingProject(true);
     try {
-      // Upload image
-      const fileRef = ref(storage, `projects/${Date.now()}_${projectForm.Img.name}`);
-      await uploadBytes(fileRef, projectForm.Img);
-      const ImgUrl = await getDownloadURL(fileRef);
+      // Upload image to Supabase Storage
+      const filePath = `projects/${Date.now()}_${projectForm.Img.name}`;
+      const { error: upErr } = await supabase.storage.from('profile-images').upload(filePath, projectForm.Img, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from('profile-images').getPublicUrl(filePath);
+      const ImgUrl = pub?.publicUrl;
 
       // Prepare arrays
       const TechStack = projectForm.TechStack
@@ -87,15 +87,18 @@ const Admin = () => {
         : [];
 
       // Save to Firestore (collection name matches existing code)
-      await addDoc(collection(db, "projects"), {
-        Title: projectForm.Title,
-        Description: projectForm.Description,
-        Link: projectForm.Link,
-        Github: projectForm.Github || "",
-        TechStack,
-        Features,
-        Img: ImgUrl,
-      });
+      const { error: insErr } = await supabase.from('projects').insert([
+        {
+          Title: projectForm.Title,
+          Description: projectForm.Description,
+          Link: projectForm.Link,
+          Github: projectForm.Github || "",
+          TechStack,
+          Features,
+          Img: ImgUrl,
+        }
+      ]);
+      if (insErr) throw insErr;
 
       Swal.fire("Success", "Project created", "success");
       resetProjectForm();
@@ -116,13 +119,14 @@ const Admin = () => {
     }
     setIsSavingCertificate(true);
     try {
-      const fileRef = ref(storage, `certificates/${Date.now()}_${certificateImg.name}`);
-      await uploadBytes(fileRef, certificateImg);
-      const ImgUrl = await getDownloadURL(fileRef);
+      const filePath = `certificates/${Date.now()}_${certificateImg.name}`;
+      const { error: upErr } = await supabase.storage.from('profile-images').upload(filePath, certificateImg, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from('profile-images').getPublicUrl(filePath);
+      const ImgUrl = pub?.publicUrl;
 
-      await addDoc(collection(db, "certificates"), {
-        Img: ImgUrl,
-      });
+      const { error: insErr } = await supabase.from('certificates').insert([{ Img: ImgUrl }]);
+      if (insErr) throw insErr;
 
       Swal.fire("Success", "Certificate added", "success");
       setCertificateImg(null);
@@ -139,15 +143,15 @@ const Admin = () => {
 
   // Loaders
   const loadProjects = async () => {
-    const snap = await getDocs(collection(db, "projects"));
-    const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    setProjects(list);
+    const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    setProjects(data || []);
   };
 
   const loadCertificates = async () => {
-    const snap = await getDocs(collection(db, "certificates"));
-    const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    setCertificates(list);
+    const { data, error } = await supabase.from('certificates').select('*').order('created_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    setCertificates(data || []);
   };
 
   const loadData = async () => {
@@ -176,9 +180,11 @@ const Admin = () => {
     try {
       let ImgUrl;
       if (projectForm.Img) {
-        const fileRef = ref(storage, `projects/${Date.now()}_${projectForm.Img.name}`);
-        await uploadBytes(fileRef, projectForm.Img);
-        ImgUrl = await getDownloadURL(fileRef);
+        const filePath = `projects/${Date.now()}_${projectForm.Img.name}`;
+        const { error: upErr } = await supabase.storage.from('profile-images').upload(filePath, projectForm.Img, { upsert: true });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from('profile-images').getPublicUrl(filePath);
+        ImgUrl = pub?.publicUrl;
       }
       const TechStack = projectForm.TechStack ? projectForm.TechStack.split(",").map(s=>s.trim()).filter(Boolean) : [];
       const Features = projectForm.Features ? projectForm.Features.split(",").map(s=>s.trim()).filter(Boolean) : [];
@@ -191,7 +197,8 @@ const Admin = () => {
         Features,
       };
       if (ImgUrl) payload.Img = ImgUrl;
-      await updateDoc(doc(db, "projects", editingProjectId), payload);
+      const { error: updErr } = await supabase.from('projects').update(payload).eq('id', editingProjectId);
+      if (updErr) throw updErr;
       Swal.fire("Updated", "Project updated", "success");
       resetProjectForm();
       await loadProjects();
@@ -206,7 +213,8 @@ const Admin = () => {
   const deleteProject = async (p) => {
     const res = await Swal.fire({ title: "Delete?", text: p.Title, icon: "warning", showCancelButton: true });
     if (!res.isConfirmed) return;
-    await deleteDoc(doc(db, "projects", p.id));
+    const { error } = await supabase.from('projects').delete().eq('id', p.id);
+    if (error) { console.error(error); return; }
     await loadProjects();
     Swal.fire("Deleted", "Project removed", "success");
   };
@@ -215,7 +223,8 @@ const Admin = () => {
   const deleteCertificate = async (c) => {
     const res = await Swal.fire({ title: "Delete certificate?", icon: "warning", showCancelButton: true });
     if (!res.isConfirmed) return;
-    await deleteDoc(doc(db, "certificates", c.id));
+    const { error } = await supabase.from('certificates').delete().eq('id', c.id);
+    if (error) { console.error(error); return; }
     await loadCertificates();
     Swal.fire("Deleted", "Certificate removed", "success");
   };

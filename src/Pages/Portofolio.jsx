@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { db, collection } from "../firebase";
-import { getDocs } from "firebase/firestore";
+import { supabase } from "../lib/supabaseClient";
 import PropTypes from "prop-types";
 import { useTheme } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
@@ -141,26 +140,29 @@ export default function FullWidthTabs() {
 
   const fetchData = useCallback(async () => {
     try {
-      const projectCollection = collection(db, "projects");
-      const certificateCollection = collection(db, "certificates");
-
-      const [projectSnapshot, certificateSnapshot] = await Promise.all([
-        getDocs(projectCollection),
-        getDocs(certificateCollection),
+      const [{ data: proj, error: pErr }, { data: cert, error: cErr }] = await Promise.all([
+        supabase.from('projects').select('*').order('created_at', { ascending: false }),
+        supabase.from('certificates').select('*').order('created_at', { ascending: false }),
       ]);
+      if (pErr) throw pErr;
+      if (cErr) throw cErr;
 
-      const projectData = projectSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        TechStack: doc.data().TechStack || [],
+      const projectData = (proj || []).map((row) => ({
+        id: row.id,
+        Title: row.Title,
+        Description: row.Description,
+        Img: row.Img,
+        Link: row.Link,
+        Github: row.Github,
+        Features: Array.isArray(row.Features) ? row.Features : [],
+        TechStack: Array.isArray(row.TechStack) ? row.TechStack : [],
       }));
 
-      const certificateData = certificateSnapshot.docs.map((doc) => doc.data());
+      const certificateData = (cert || []).map((row) => ({ id: row.id, Img: row.Img }));
 
       setProjects(projectData);
       setCertificates(certificateData);
 
-      // Store in localStorage
       localStorage.setItem("projects", JSON.stringify(projectData));
       localStorage.setItem("certificates", JSON.stringify(certificateData));
     } catch (error) {

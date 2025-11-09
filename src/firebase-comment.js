@@ -8,7 +8,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyDfR1Z-6HHy68rFTAz3GxZplO9l-w4EXxw",
   authDomain: "testing-cec2c.firebaseapp.com",
   projectId: "testing-cec2c",
-  storageBucket: "testing-cec2c.firebasestorage.app",
+  storageBucket: "testing-cec2c.appspot.com",
   messagingSenderId: "559533993603",
   appId: "1:559533993603:web:91cdf64d6821332ed4b5b6"
 };
