@@ -98,10 +98,15 @@ const Admin = () => {
           Img: ImgUrl,
         }
       ]);
-      if (insErr) throw insErr;
+      if (insErr) {
+        Swal.fire("Error", (insErr.message || "Failed to create project") + "\nHint: Pastikan RLS policy INSERT untuk tabel 'projects' sudah diizinkan untuk public.", "error");
+        throw insErr;
+      }
 
       Swal.fire("Success", "Project created", "success");
       resetProjectForm();
+      const projInput = document.querySelector('input[name="Img"]');
+      if (projInput) projInput.value = "";
       await loadProjects();
     } catch (err) {
       console.error(err);
@@ -126,7 +131,10 @@ const Admin = () => {
       const ImgUrl = pub?.publicUrl;
 
       const { error: insErr } = await supabase.from('certificates').insert([{ Img: ImgUrl }]);
-      if (insErr) throw insErr;
+      if (insErr) {
+        Swal.fire("Error", (insErr.message || "Failed to add certificate") + "\nHint: Pastikan RLS policy INSERT untuk tabel 'certificates' sudah diizinkan untuk public.", "error");
+        throw insErr;
+      }
 
       Swal.fire("Success", "Certificate added", "success");
       setCertificateImg(null);
@@ -206,8 +214,11 @@ const Admin = () => {
         Features,
       };
       if (ImgUrl) payload.Img = ImgUrl;
-      const { error: updErr } = await supabase.from('projects').update(payload).eq('id', editingProjectId);
-      if (updErr) throw updErr;
+      const { error: updErr } = await supabase.from('projects').update(payload).eq('id', Number(editingProjectId));
+      if (updErr) {
+        Swal.fire("Error", (updErr.message || "Failed to update project") + "\nHint: Pastikan RLS policy UPDATE untuk tabel 'projects' sudah diizinkan untuk public.", "error");
+        throw updErr;
+      }
       Swal.fire("Updated", "Project updated", "success");
       resetProjectForm();
       await loadProjects();
@@ -230,7 +241,7 @@ const Admin = () => {
       }
     } catch (e) { console.warn('Storage remove failed:', e?.message || e); }
 
-    const { error } = await supabase.from('projects').delete().eq('id', p.id);
+    const { error } = await supabase.from('projects').delete().eq('id', Number(p.id));
     if (error) { console.error(error); Swal.fire("Error", error.message || "Failed to delete project", "error"); return; }
     await loadProjects();
     Swal.fire("Deleted", "Project removed", "success");
@@ -248,7 +259,7 @@ const Admin = () => {
       }
     } catch (e) { console.warn('Storage remove failed:', e?.message || e); }
 
-    const { error } = await supabase.from('certificates').delete().eq('id', c.id);
+    const { error } = await supabase.from('certificates').delete().eq('id', Number(c.id));
     if (error) { console.error(error); Swal.fire("Error", error.message || "Failed to delete certificate", "error"); return; }
     await loadCertificates();
     Swal.fire("Deleted", "Certificate removed", "success");
