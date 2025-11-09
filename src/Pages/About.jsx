@@ -1,4 +1,5 @@
-import React, { useEffect, memo, useMemo } from "react"
+import React, { useEffect, memo, useMemo, useState } from "react"
+import { supabase } from "../lib/supabaseClient"
 import { FileText, Code, Award, Globe, ArrowUpRight, Sparkles, UserCheck } from "lucide-react"
 import AOS from 'aos'
 import 'aos/dist/aos.css'
@@ -49,12 +50,18 @@ const ProfileImage = memo(() => (
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40 z-10 transition-opacity duration-700 group-hover:opacity-0 hidden sm:block" />
           <div className="absolute inset-0 bg-gradient-to-t from-purple-500/20 via-transparent to-blue-500/20 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 hidden sm:block" />
           
-          <img
-            src="/Photo.png"
-            alt="Profile"
-            className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-2"
-            loading="lazy"
-          />
+          {(() => {
+            const aboutPhotoUrl = supabase.storage.from('profile-images').getPublicUrl('about/profile.png').data?.publicUrl;
+            return (
+              <img
+                src={aboutPhotoUrl || "/Photo.png"}
+                alt="Profile"
+                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-2"
+                loading="lazy"
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/Photo.png"; }}
+              />
+            );
+          })()}
 
           {/* Advanced hover effects - desktop only */}
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700 z-20 hidden sm:block">
@@ -113,6 +120,7 @@ const StatCard = memo(({ icon: Icon, color, value, label, description, animation
 ));
 
 const AboutPage = () => {
+  const [aboutSummary, setAboutSummary] = useState("");
   // Memoized calculations
   const { totalProjects, totalCertificates, YearExperience } = useMemo(() => {
     const storedProjects = JSON.parse(localStorage.getItem("projects") || "[]");
@@ -214,11 +222,9 @@ const AboutPage = () => {
               data-aos="fade-right"
               data-aos-duration="1500"
             >
-              Saya berumur 28 Tahun Status Single, 
-              memiliki 3+ pengalaman di bidang akuntansi dan keuangan, 
-              5+ di bidang data analyst, data science, pencapaian saya selama ini membuat sistem dan SOP 
-              yang memudahkan perusahaan dalam menjalankan bisnisnya, membantu dan membuat template report dan 
-              dashboard untuk stakeholder dan shareholder.
+              {aboutSummary || (
+                "Saya berumur 28 Tahun Status Single, memiliki 3+ pengalaman di bidang akuntansi dan keuangan, 5+ di bidang data analyst, data science, pencapaian saya selama ini membuat sistem dan SOP yang memudahkan perusahaan dalam menjalankan bisnisnya, membantu dan membuat template report dan dashboard untuk stakeholder dan shareholder."
+              )}
             </p>
 
             <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 lg:gap-4 lg:px-0 w-full">

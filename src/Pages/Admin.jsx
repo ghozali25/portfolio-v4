@@ -23,6 +23,83 @@ const Admin = () => {
     }
   };
 
+  const saveAboutSummary = async () => {
+    setAboutSummarySaving(true);
+    try {
+      const blob = new Blob([aboutSummary || ""], { type: 'text/plain' });
+      const { error: upErr } = await supabase.storage.from('profile-images').upload('about/summary.txt', blob, { upsert: true, contentType: 'text/plain' });
+      if (upErr) throw upErr;
+      Swal.fire('Success', 'About summary saved', 'success');
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Error', 'Failed to save about summary', 'error');
+    } finally {
+      setAboutSummarySaving(false);
+    }
+  };
+
+  const deleteAboutSummary = async () => {
+    const res = await Swal.fire({ title: 'Delete about summary?', icon: 'warning', showCancelButton: true });
+    if (!res.isConfirmed) return;
+    try {
+      await supabase.storage.from('profile-images').remove(['about/summary.txt']);
+      setAboutSummary("");
+      Swal.fire('Deleted', 'About summary removed', 'success');
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Error', 'Failed to delete about summary', 'error');
+    }
+  };
+
+  const loadAboutSummary = async () => {
+    try {
+      const { data: list, error: listErr } = await supabase.storage.from('profile-images').list('about', { limit: 100 });
+      if (listErr) { console.warn(listErr.message); }
+      const hasSummary = (list || []).some((f) => f.name === 'summary.txt');
+      if (!hasSummary) { setAboutSummary(""); return; }
+      const { data } = supabase.storage.from('profile-images').getPublicUrl('about/summary.txt');
+      const url = data?.publicUrl;
+      if (!url) { setAboutSummary(""); return; }
+      const res = await fetch(url);
+      const text = await res.text();
+      setAboutSummary(text || "");
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // About photo handlers
+  const uploadAboutPhoto = async (file) => {
+    if (!file) return;
+    setAboutUploading(true);
+    try {
+      const path = 'about/profile.png';
+      const { error: upErr } = await supabase.storage.from('profile-images').upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('profile-images').getPublicUrl(path);
+      setAboutPhotoUrl(data?.publicUrl || "");
+      Swal.fire('Success', 'About photo updated', 'success');
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Error', 'Failed to upload about photo', 'error');
+    } finally {
+      setAboutUploading(false);
+    }
+  };
+
+  const deleteAboutPhoto = async () => {
+    const res = await Swal.fire({ title: 'Delete about photo?', icon: 'warning', showCancelButton: true });
+    if (!res.isConfirmed) return;
+    try {
+      await supabase.storage.from('profile-images').remove(['about/profile.png']);
+      setAboutPhotoUrl("");
+      Swal.fire('Deleted', 'About photo removed', 'success');
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Error', 'Failed to delete about photo', 'error');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("admin_auth");
     setIsAuthed(false);
@@ -47,6 +124,12 @@ const Admin = () => {
   const [isSavingCertificate, setIsSavingCertificate] = useState(false);
   const [certificates, setCertificates] = useState([]);
   const [editingCertificateId, setEditingCertificateId] = useState(null);
+
+  // About photo state
+  const [aboutPhotoUrl, setAboutPhotoUrl] = useState("");
+  const [aboutUploading, setAboutUploading] = useState(false);
+  const [aboutSummary, setAboutSummary] = useState("");
+  const [aboutSummarySaving, setAboutSummarySaving] = useState(false);
 
   const handleProjectChange = (e) => {
     const { name, value, files } = e.target;
@@ -162,8 +245,25 @@ const Admin = () => {
     setCertificates(data || []);
   };
 
+  const loadAboutPhoto = async () => {
+    try {
+      // Check if file exists by listing folder
+      const { data: list, error: listErr } = await supabase.storage.from('profile-images').list('about', { limit: 100 });
+      if (listErr) { console.warn(listErr.message); }
+      const hasProfile = (list || []).some((f) => f.name === 'profile.png');
+      if (hasProfile) {
+        const { data } = supabase.storage.from('profile-images').getPublicUrl('about/profile.png');
+        setAboutPhotoUrl(data?.publicUrl || "");
+      } else {
+        setAboutPhotoUrl("");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const loadData = async () => {
-    await Promise.all([loadProjects(), loadCertificates()]);
+    await Promise.all([loadProjects(), loadCertificates(), loadAboutPhoto(), loadAboutSummary()]);
   };
 
   // Helpers
@@ -353,6 +453,55 @@ const Admin = () => {
           ))}
           {projects.length === 0 && <p className="text-gray-400">Belum ada project.</p>}
         </div>
+      </div>
+
+      {/* About Photo */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-semibold mb-4">About Photo</h2>
+        <div className="flex flex-col md:flex-row gap-6 items-start">
+          <div className="w-40 h-40 rounded-full overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center">
+            {aboutPhotoUrl ? (
+              <img src={aboutPhotoUrl} alt="About" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-gray-400 text-sm">No photo</span>
+            )}
+          </div>
+          <div className="flex-1 space-y-3">
+            <input id="about-photo-input" type="file" accept="image/*" className="w-full" onChange={(e)=>uploadAboutPhoto(e.target.files?.[0] || null)} disabled={aboutUploading} />
+            <div className="flex gap-3">
+              <button onClick={() => {
+                const el = document.getElementById('about-photo-input');
+                if (el) el.click();
+              }} className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60" disabled={aboutUploading}>
+                {aboutUploading ? 'Uploading...' : 'Upload / Replace'}
+              </button>
+              {aboutPhotoUrl && (
+                <button onClick={deleteAboutPhoto} className="px-4 py-2 rounded-lg bg-red-500/20 text-red-300">Delete</button>
+              )}
+            </div>
+            <p className="text-xs text-gray-400">File disimpan di Storage: profile-images/about/profile.png</p>
+          </div>
+        </div>
+      </div>
+
+      {/* About Summary */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-semibold mb-4">About Summary</h2>
+        <textarea
+          className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none min-h-[140px]"
+          placeholder="Tulis ringkasan About..."
+          value={aboutSummary}
+          onChange={(e)=>setAboutSummary(e.target.value)}
+        />
+        <div className="mt-3 flex gap-3">
+          <button onClick={saveAboutSummary} disabled={aboutSummarySaving} className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
+            {aboutSummarySaving ? 'Saving...' : 'Save'}
+          </button>
+          {aboutSummary && (
+            <button onClick={deleteAboutSummary} className="px-4 py-2 rounded-lg bg-red-500/20 text-red-300">Delete</button>
+          )}
+        </div>
+        <p className="text-xs text-gray-400 mt-2">Disimpan di Storage: profile-images/about/summary.txt</p>
       </div>
 
       {/* Certificate Form */}
