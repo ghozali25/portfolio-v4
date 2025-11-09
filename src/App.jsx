@@ -67,6 +67,19 @@ function App() {
   const [hash, setHash] = useState(typeof window !== 'undefined' ? window.location.hash : '');
 
   useEffect(() => {
+    // Compatibility: rewrite path routes to hash routes
+    if (typeof window !== 'undefined') {
+      const { pathname } = window.location;
+      if (pathname.startsWith('/admin')) {
+        window.location.replace('/#admin');
+        return;
+      }
+      if (pathname.startsWith('/project/')) {
+        const id = pathname.split('/').pop();
+        window.location.replace(`/#project/${id}`);
+        return;
+      }
+    }
     const onHashChange = () => setHash(window.location.hash || '');
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);

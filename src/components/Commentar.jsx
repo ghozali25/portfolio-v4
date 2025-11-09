@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { getDocs, addDoc, collection, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../firebase-comment';
+import { supabase } from '../lib/supabaseClient';
 import { MessageCircle, UserCircle2, Loader2, AlertCircle, Send, ImagePlus, X } from 'lucide-react';
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -194,24 +192,36 @@ const Komentar = () => {
         });
     }, []);
 
-    useEffect(() => {
-        const commentsRef = collection(db, 'portfolio-comments');
-        const q = query(commentsRef, orderBy('createdAt', 'desc'));
-        
-        return onSnapshot(q, (querySnapshot) => {
-            const commentsData = querySnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            setComments(commentsData);
-        });
+    const fetchComments = useCallback(async () => {
+        const { data, error } = await supabase
+            .from('portfolio_comments')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (error) {
+            console.error('Error fetching comments:', error);
+            return;
+        }
+        const mapped = (data || []).map((row) => ({
+            id: row.id,
+            content: row.content,
+            userName: row.user_name,
+            profileImage: row.profile_image,
+            createdAt: row.created_at,
+        }));
+        setComments(mapped);
     }, []);
+
+    useEffect(() => {
+        fetchComments();
+    }, [fetchComments]);
 
     const uploadImage = useCallback(async (imageFile) => {
         if (!imageFile) return null;
-        const storageRef = ref(storage, `profile-images/${Date.now()}_${imageFile.name}`);
-        await uploadBytes(storageRef, imageFile);
-        return getDownloadURL(storageRef);
+        const filePath = `profiles/${Date.now()}_${imageFile.name}`;
+        const { error: upErr } = await supabase.storage.from('profile-images').upload(filePath, imageFile, { upsert: true });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from('profile-images').getPublicUrl(filePath);
+        return pub?.publicUrl || null;
     }, []);
 
     const handleCommentSubmit = useCallback(async ({ newComment, userName, imageFile }) => {
@@ -220,23 +230,26 @@ const Komentar = () => {
         
         try {
             const profileImageUrl = await uploadImage(imageFile);
-            await addDoc(collection(db, 'portfolio-comments'), {
-                content: newComment,
-                userName,
-                profileImage: profileImageUrl,
-                createdAt: serverTimestamp(),
-            });
+            const { error } = await supabase.from('portfolio_comments').insert([
+                {
+                    content: newComment,
+                    user_name: userName,
+                    profile_image: profileImageUrl,
+                }
+            ]);
+            if (error) throw error;
+            await fetchComments();
         } catch (error) {
             setError('Failed to post comment. Please try again.');
             console.error('Error adding comment: ', error);
         } finally {
             setIsSubmitting(false);
         }
-    }, [uploadImage]);
+    }, [uploadImage, fetchComments]);
 
-    const formatDate = useCallback((timestamp) => {
-        if (!timestamp) return '';
-        const date = timestamp.toDate();
+    const formatDate = useCallback((ts) => {
+        if (!ts) return '';
+        const date = typeof ts === 'string' ? new Date(ts) : ts;
         const now = new Date();
         const diffMinutes = Math.floor((now - date) / (1000 * 60));
         const diffHours = Math.floor(diffMinutes / 60);
