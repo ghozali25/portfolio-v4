@@ -160,7 +160,7 @@ const AboutPage = () => {
     loadSummary();
   }, []);
 
-  // Load CV link from Supabase Storage
+  // Load CV link from Supabase Storage (managed via Admin)
   useEffect(() => {
     const loadCvLink = async () => {
       try {

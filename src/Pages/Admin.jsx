@@ -439,28 +439,6 @@ const Admin = () => {
               <label className="block text-sm mb-1">Username</label>
               <input className="w-full p-3 rounded-lg bg-white/10 border border-white/10" value={loginForm.user} onChange={(e)=>setLoginForm({...loginForm, user:e.target.value})} />
             </div>
-
-      {/* About CV Link (PDF only) */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
-        <h2 className="text-xl font-semibold mb-2">About CV (PDF)</h2>
-        <p className="text-xs text-gray-400 mb-3">Masukkan tautan ke file CV dalam format PDF (bukan foto profil). Contoh: tautan Google Drive yang mengarah ke PDF.</p>
-        <input
-          type="url"
-          placeholder="https://..."
-          className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none"
-          value={cvLink}
-          onChange={(e)=>setCvLink(e.target.value)}
-        />
-        <div className="mt-3 flex gap-3">
-          <button onClick={saveCvLink} disabled={cvSaving} className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
-            {cvSaving ? 'Saving...' : 'Save'}
-          </button>
-          {cvLink && (
-            <button onClick={deleteCvLink} className="px-4 py-2 rounded-lg bg-red-500/20 text-red-300">Delete</button>
-          )}
-        </div>
-        <p className="text-xs text-gray-400 mt-2">Disimpan di Storage: profile-images/about/cv_link.txt</p>
-      </div>
             <div>
               <label className="block text-sm mb-1">Password</label>
               <input type="password" className="w-full p-3 rounded-lg bg-white/10 border border-white/10" value={loginForm.pass} onChange={(e)=>setLoginForm({...loginForm, pass:e.target.value})} />
@@ -472,7 +450,7 @@ const Admin = () => {
       <>
       <h1 className="text-3xl md:text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-[#6366f1] to-[#a855f7]">Admin Panel</h1>
       <div className="flex items-center justify-between mb-6">
-        <p className="text-gray-400">Tambah, edit, hapus Projects dan Certificates. Data Firebase (Firestore + Storage).</p>
+        <p className="text-gray-400">Tambah, edit, hapus Projects dan Certificates. Data disimpan di Supabase (Postgres + Storage).</p>
         <button onClick={handleLogout} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10">Logout</button>
       </div>
 
@@ -619,6 +597,28 @@ const Admin = () => {
           )}
         </div>
         <p className="text-xs text-gray-400 mt-2">Disimpan di Storage: profile-images/about/summary.txt</p>
+      </div>
+
+      {/* About CV Link (PDF only) */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-semibold mb-2">About CV (PDF)</h2>
+        <p className="text-xs text-gray-400 mb-3">Masukkan tautan ke file CV dalam format PDF (bukan foto profil). Contoh: tautan Google Drive yang mengarah ke PDF.</p>
+        <input
+          type="url"
+          placeholder="https://..."
+          className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none"
+          value={cvLink}
+          onChange={(e)=>setCvLink(e.target.value)}
+        />
+        <div className="mt-3 flex gap-3">
+          <button onClick={saveCvLink} disabled={cvSaving} className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
+            {cvSaving ? 'Saving...' : 'Save'}
+          </button>
+          {cvLink && (
+            <button onClick={deleteCvLink} className="px-4 py-2 rounded-lg bg-red-500/20 text-red-300">Delete</button>
+          )}
+        </div>
+        <p className="text-xs text-gray-400 mt-2">Disimpan di Storage: profile-images/about/cv_link.txt</p>
       </div>
 
       {/* Certificate Form */}
