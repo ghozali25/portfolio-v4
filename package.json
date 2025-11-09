@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build && node -e \"const fs=require('fs');fs.copyFileSync('dist/index.html','dist/404.html')\"",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
@@ -63,3 +65,4 @@
     "tailwindcss": "^3.4.14"
   }
 }
+
