@@ -23,6 +23,7 @@
     "@splinetool/react-spline": "^4.0.0",
     "@splinetool/runtime": "^1.9.37",
     "@supabase-js/source": "github:supabase/supabase-js",
+    "@supabase/supabase-js": "^2.80.0",
     "add": "^2.0.6",
     "aos": "^2.3.4",
     "clsx": "^2.1.1",
