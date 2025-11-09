@@ -1,22 +1,28 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore"
-import { getStorage } from "firebase/storage"
-import { collection, addDoc, getDocs } from "@firebase/firestore"; // Perbarui ini
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+import { getAnalytics } from "firebase/analytics";
+import { collection, addDoc, getDocs } from "@firebase/firestore";
 
 
-// Your web app's Firebase configuration
+// User-provided Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBiRi7UsjeGrg5yQmP2XdC1EqAybyyEjg8",
-  authDomain: "transretail-e7318.firebaseapp.com",
-  projectId: "transretail-e7318",
-  storageBucket: "transretail-e7318.firebasestorage.app",
-  messagingSenderId: "856404642895",
-  appId: "1:856404642895:web:2170bde84fbd0dbe8f6e3a"
+  apiKey: "AIzaSyDfR1Z-6HHy68rFTAz3GxZplO9l-w4EXxw",
+  authDomain: "testing-cec2c.firebaseapp.com",
+  projectId: "testing-cec2c",
+  storageBucket: "testing-cec2c.firebasestorage.app",
+  messagingSenderId: "559533993603",
+  appId: "1:559533993603:web:91cdf64d6821332ed4b5b6",
+  measurementId: "G-QL6J5JE459"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const storage = getStorage(app);
+// Initialize analytics only in browser
+if (typeof window !== 'undefined') {
+  try { getAnalytics(app); } catch {}
+}
 
 export { db, storage, collection, addDoc };
