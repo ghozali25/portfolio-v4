@@ -40,6 +40,29 @@ const Admin = () => {
     }
   };
 
+  const saveCvLink = async () => {
+    setCvSaving(true);
+    try {
+      // Basic validation: must be a PDF link (ends with .pdf) or Google Drive URL
+      const isPdf = /\.pdf(\?|#|$)/i.test(cvLink || '');
+      const isDrive = /https?:\/\/drive\.google\.com\//i.test(cvLink || '');
+      if (!isPdf && !isDrive) {
+        Swal.fire('Format tidak valid', 'Harap masukkan tautan ke file PDF (contoh: Google Drive link ke PDF).', 'warning');
+        return;
+      }
+      const blob = new Blob([cvLink || ""], { type: 'text/plain' });
+      const { error: upErr } = await supabase.storage.from('profile-images').upload('about/cv_link.txt', blob, { upsert: true, contentType: 'text/plain' });
+      if (upErr) throw upErr;
+      if (typeof window !== 'undefined') localStorage.setItem('about_version', String(Date.now()));
+      Swal.fire('Success', 'CV link saved', 'success');
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Error', 'Failed to save CV link', 'error');
+    } finally {
+      setCvSaving(false);
+    }
+  };
+
   const saveAboutSummary = async () => {
     setAboutSummarySaving(true);
     try {
@@ -417,9 +440,10 @@ const Admin = () => {
               <input className="w-full p-3 rounded-lg bg-white/10 border border-white/10" value={loginForm.user} onChange={(e)=>setLoginForm({...loginForm, user:e.target.value})} />
             </div>
 
-      {/* About CV Link */}
+      {/* About CV Link (PDF only) */}
       <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
-        <h2 className="text-xl font-semibold mb-4">About CV Link</h2>
+        <h2 className="text-xl font-semibold mb-2">About CV (PDF)</h2>
+        <p className="text-xs text-gray-400 mb-3">Masukkan tautan ke file CV dalam format PDF (bukan foto profil). Contoh: tautan Google Drive yang mengarah ke PDF.</p>
         <input
           type="url"
           placeholder="https://..."
