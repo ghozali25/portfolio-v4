@@ -46,6 +46,7 @@ const Admin = () => {
       const blob = new Blob([aboutSummary || ""], { type: 'text/plain' });
       const { error: upErr } = await supabase.storage.from('profile-images').upload('about/summary.txt', blob, { upsert: true, contentType: 'text/plain' });
       if (upErr) throw upErr;
+      if (typeof window !== 'undefined') localStorage.setItem('about_version', String(Date.now()));
       Swal.fire('Success', 'About summary saved', 'success');
     } catch (e) {
       console.error(e);
@@ -61,6 +62,7 @@ const Admin = () => {
     try {
       await supabase.storage.from('profile-images').remove(['about/summary.txt']);
       setAboutSummary("");
+      if (typeof window !== 'undefined') localStorage.setItem('about_version', String(Date.now()));
       Swal.fire('Deleted', 'About summary removed', 'success');
     } catch (e) {
       console.error(e);
@@ -97,6 +99,7 @@ const Admin = () => {
       setAboutPhotoUrl(data?.publicUrl || "");
       if (aboutPreviewUrl) { URL.revokeObjectURL(aboutPreviewUrl); setAboutPreviewUrl(""); }
       setAboutSelectedFile(null);
+      if (typeof window !== 'undefined') localStorage.setItem('about_version', String(Date.now()));
       Swal.fire('Success', 'About photo updated', 'success');
     } catch (e) {
       console.error(e);
@@ -112,6 +115,7 @@ const Admin = () => {
     try {
       await supabase.storage.from('profile-images').remove(['about/profile.png']);
       setAboutPhotoUrl("");
+      if (typeof window !== 'undefined') localStorage.setItem('about_version', String(Date.now()));
       Swal.fire('Deleted', 'About photo removed', 'success');
     } catch (e) {
       console.error(e);

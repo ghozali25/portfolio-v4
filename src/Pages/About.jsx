@@ -51,7 +51,9 @@ const ProfileImage = memo(() => (
           <div className="absolute inset-0 bg-gradient-to-t from-purple-500/20 via-transparent to-blue-500/20 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 hidden sm:block" />
           
           {(() => {
-            const aboutPhotoUrl = supabase.storage.from('profile-images').getPublicUrl('about/profile.png').data?.publicUrl;
+            const base = supabase.storage.from('profile-images').getPublicUrl('about/profile.png').data?.publicUrl;
+            const ver = typeof window !== 'undefined' ? (localStorage.getItem('about_version') || '') : '';
+            const aboutPhotoUrl = base ? `${base}?v=${encodeURIComponent(ver || Date.now())}` : '';
             return (
               <img
                 src={aboutPhotoUrl || "/Photo.png"}
@@ -139,12 +141,32 @@ const AboutPage = () => {
     };
   }, []);
 
+  // Load About summary from Supabase Storage
+  useEffect(() => {
+    const loadSummary = async () => {
+      try {
+        const { data } = supabase.storage.from('profile-images').getPublicUrl('about/summary.txt');
+        const ver = typeof window !== 'undefined' ? (localStorage.getItem('about_version') || '') : '';
+        const url = data?.publicUrl ? `${data.publicUrl}?v=${encodeURIComponent(ver || Date.now())}` : '';
+        if (!url) return;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) return;
+        const text = await res.text();
+        setAboutSummary(text || "");
+      } catch (e) {
+        // ignore, fallback will be used
+      }
+    };
+    loadSummary();
+  }, []);
+
   // Load CV link from Supabase Storage
   useEffect(() => {
     const loadCvLink = async () => {
       try {
         const { data } = supabase.storage.from('profile-images').getPublicUrl('about/cv_link.txt');
-        const url = data?.publicUrl;
+        const ver = typeof window !== 'undefined' ? (localStorage.getItem('about_version') || '') : '';
+        const url = data?.publicUrl ? `${data.publicUrl}?v=${encodeURIComponent(ver || Date.now())}` : '';
         if (!url) return;
         const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) return;
