@@ -27,11 +27,12 @@ const CardProject = ({ Img, Title, Description, Link: ProjectLink, id }) => {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
     
         <div className="relative p-5 z-10">
-          <div className="relative overflow-hidden rounded-lg">
+          <div className="relative overflow-hidden rounded-lg flex items-center justify-center" style={{ height: 220 }}>
             <img
               src={Img}
               alt={Title}
-              className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+              className="transform transition-transform duration-500"
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
             />
           </div>
           

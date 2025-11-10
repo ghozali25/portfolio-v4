@@ -116,13 +116,14 @@ export default function FullWidthTabs() {
   const [showAllCertificates, setShowAllCertificates] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const initialItems = isMobile ? 4 : 6;
+  const [sortAscending, setSortAscending] = useState(true); // true: oldest->newest, false: newest->oldest
 
   useEffect(() => {
     // Initialize AOS once
     AOS.init({
       once: false, // This will make animations occur only once
     });
-  }, []);
+  }, [sortAscending]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -130,18 +131,49 @@ export default function FullWidthTabs() {
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [sortAscending]);
 
   const fetchData = useCallback(async () => {
     try {
       const [{ data: proj, error: pErr }, { data: cert, error: cErr }] = await Promise.all([
-        supabase.from('projects').select('*').order('created_at', { ascending: false }),
-        supabase.from('certificates').select('*').order('created_at', { ascending: false }),
+        supabase.from('projects').select('*').order('created_at', { ascending: sortAscending }),
+        supabase.from('certificates').select('*').order('created_at', { ascending: sortAscending }),
       ]);
       if (pErr) throw pErr;
       if (cErr) throw cErr;
 
-      const projectData = (proj || []).map((row) => ({
+      // Client-side robust sort: prefer created_at; fallback strictly to id
+      const keyOf = (row) => {
+        if (row.created_at) {
+          const t = Date.parse(row.created_at);
+          if (!Number.isNaN(t)) return t;
+        }
+        // fallback to id (numeric or string)
+        const idVal = row.id;
+        if (typeof idVal === 'number') return idVal;
+        // try to coerce numeric-like strings, else keep as string
+        const num = Number(idVal);
+        return Number.isNaN(num) ? String(idVal || '') : num;
+      };
+
+      const cmp = (a, b) => {
+        const A = keyOf(a);
+        const B = keyOf(b);
+        let res;
+        if (typeof A === 'number' && typeof B === 'number') res = A - B;
+        else res = String(A).localeCompare(String(B));
+        if (res === 0) {
+          // stable tie-breaker by id
+          const ai = String(a.id || '');
+          const bi = String(b.id || '');
+          res = ai.localeCompare(bi);
+        }
+        return sortAscending ? res : -res;
+      };
+
+      const projSorted = (proj || []).slice().sort(cmp);
+
+      const projectData = projSorted.map((row) => ({
         id: row.id,
         Title: row.Title,
         Description: row.Description,
@@ -152,7 +184,9 @@ export default function FullWidthTabs() {
         TechStack: Array.isArray(row.TechStack) ? row.TechStack : [],
       }));
 
-      const certificateData = (cert || []).map((row) => ({ id: row.id, Img: row.Img, Link: row.Link }));
+      const certSorted = (cert || []).slice().sort(cmp);
+
+      const certificateData = certSorted.map((row) => ({ id: row.id, Img: row.Img, Link: row.Link }));
 
       setProjects(projectData);
       setCertificates(certificateData);
@@ -167,6 +201,8 @@ export default function FullWidthTabs() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const toggleSort = () => setSortAscending((prev) => !prev);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -186,7 +222,7 @@ export default function FullWidthTabs() {
   return (
     <div className="md:px-[10%] px-[5%] w-full sm:mt-0 mt-[3rem] bg-[#030014] overflow-hidden" id="Portofolio">
       {/* Header section - unchanged */}
-      <div className="text-center pb-10" data-aos="fade-up" data-aos-duration="1000">
+      <div className="text-center pb-6" data-aos="fade-up" data-aos-duration="1000">
         <h2 className="inline-block text-3xl md:text-5xl font-bold text-center mx-auto text-transparent bg-clip-text bg-gradient-to-r from-[#6366f1] to-[#a855f7]">
           <span style={{
             color: '#6366f1',
@@ -201,6 +237,16 @@ export default function FullWidthTabs() {
         <p className="text-slate-400 max-w-2xl mx-auto text-sm md:text-base mt-2">
           Explore my journey through projects, certifications, and technical expertise.
         </p>
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={toggleSort}
+            className="px-3 py-1.5 text-slate-300 hover:text-white text-sm font-medium transition-all duration-300 bg-white/5 hover:bg-white/10 rounded-md border border-white/10 hover:border-white/20 backdrop-blur-sm"
+            aria-label="Toggle sorting order"
+            title={`Current: ${sortAscending ? 'Oldest → Newest' : 'Newest → Oldest'}`}
+          >
+            {sortAscending ? 'Oldest → Newest' : 'Newest → Oldest'}
+          </button>
+        </div>
       </div>
 
       <Box sx={{ width: "100%" }}>

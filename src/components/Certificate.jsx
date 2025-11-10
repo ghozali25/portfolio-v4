@@ -44,6 +44,11 @@ const Certificate = ({ ImgSertif, CredentialLink }) => {
 				<Box
 					sx={{
 						position: "relative",
+						height: 220,
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						backgroundColor: 'rgba(0,0,0,0.02)',
 						"&::before": {
 							content: '""',
 							position: "absolute",
@@ -61,11 +66,11 @@ const Certificate = ({ ImgSertif, CredentialLink }) => {
 						src={ImgSertif}
 						alt="Certificate"
 						style={{
-							width: "100%",
-							height: "auto",
+							maxWidth: "100%",
+							maxHeight: "100%",
 							display: "block",
-							objectFit: "cover",
-							filter: "contrast(1.10) brightness(0.9) saturate(1.1)",
+							objectFit: "contain",
+							filter: "contrast(1.05) brightness(0.95) saturate(1.05)",
 							transition: "filter 0.3s ease",
 						}}
 						onClick={handleOpen}
