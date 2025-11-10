@@ -71,21 +71,21 @@ const Certificate = ({ ImgSertif, CredentialLink }) => {
 					/>
 				</Box>
 
-			{/* Credential Link below thumbnail */}
-			{CredentialLink ? (
-				<div className="mt-2">
-					<a
-						href={CredentialLink}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/10 hover:bg-white/20 text-white text-sm transition-colors"
-						style={{ textDecoration: 'none' }}
-					>
-						<span>View Credential</span>
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9-9"/><path d="M7 7h10v10"/></svg>
-					</a>
-				</div>
-			) : null}
+				{/* Credential Link below thumbnail */}
+				{CredentialLink ? (
+					<div className="mt-2 relative z-[3]">
+						<a
+							href={CredentialLink}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/10 hover:bg-white/20 text-white text-sm transition-colors"
+							style={{ textDecoration: 'none', position: 'relative', zIndex: 3 }}
+						>
+							<span>View Credential</span>
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9-9"/><path d="M7 7h10v10"/></svg>
+						</a>
+					</div>
+				) : null}
 
 				{/* Hover Overlay */}
 				<Box
@@ -99,6 +99,7 @@ const Certificate = ({ ImgSertif, CredentialLink }) => {
 						opacity: 0,
 						transition: "all 0.3s ease",
 						cursor: "pointer",
+						pointerEvents: 'none',
 						zIndex: 2,
 					}}
 					onClick={handleOpen}>

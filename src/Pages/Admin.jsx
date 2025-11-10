@@ -23,6 +23,46 @@ const Admin = () => {
     }
   };
 
+  const startEditCertificate = (c) => {
+    setEditingCertificateId(c.id);
+    setCertificateLink(c.Link || "");
+    setCertificateImg(null);
+    if (certificatePreview) { URL.revokeObjectURL(certificatePreview); setCertificatePreview(""); }
+  };
+
+  const saveEditCertificate = async (e) => {
+    e.preventDefault();
+    if (!editingCertificateId) return;
+    setIsSavingCertificate(true);
+    try {
+      let ImgUrl;
+      if (certificateImg) {
+        const filePath = `certificates/${Date.now()}_${certificateImg.name}`;
+        const { error: upErr } = await supabase.storage.from('profile-images').upload(filePath, certificateImg, { upsert: true });
+        if (upErr) throw upErr;
+        const { data: pub } = await supabase.storage.from('profile-images').getPublicUrl(filePath);
+        ImgUrl = pub?.publicUrl;
+      }
+      const payload = { Link: (certificateLink || null) };
+      if (ImgUrl) payload.Img = ImgUrl;
+      const { error: updErr } = await supabase.from('certificates').update(payload).eq('id', editingCertificateId);
+      if (updErr) throw updErr;
+      Swal.fire('Updated', 'Certificate updated', 'success');
+      setEditingCertificateId(null);
+      setCertificateImg(null);
+      setCertificateLink("");
+      if (certificatePreview) { URL.revokeObjectURL(certificatePreview); setCertificatePreview(""); }
+      const input = document.getElementById('certificate-input');
+      if (input) input.value = "";
+      await loadCertificates();
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', 'Failed to update certificate', 'error');
+    } finally {
+      setIsSavingCertificate(false);
+    }
+  };
+
   const deleteCvLink = async () => {
     const res = await Swal.fire({ title: 'Delete CV link?', icon: 'warning', showCancelButton: true });
     if (!res.isConfirmed) return;
@@ -650,10 +690,10 @@ const Admin = () => {
 
       {/* Certificate Form */}
       <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8">
-        <h2 className="text-xl font-semibold mb-4">Add Certificate</h2>
-        <form onSubmit={onCreateCertificate} className="grid grid-cols-1 gap-4">
+        <h2 className="text-xl font-semibold mb-4">{editingCertificateId ? 'Edit Certificate' : 'Add Certificate'}</h2>
+        <form onSubmit={editingCertificateId ? saveEditCertificate : onCreateCertificate} className="grid grid-cols-1 gap-4">
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Certificate Image</label>
+            <label className="block text-sm text-gray-300 mb-1">Certificate Image{editingCertificateId ? ' (optional)' : ''}</label>
             <input
               id="certificate-input"
               type="file"
@@ -665,7 +705,7 @@ const Admin = () => {
                 if (file) setCertificatePreview(URL.createObjectURL(file)); else setCertificatePreview("");
               }}
               className="w-full"
-              required
+              required={!editingCertificateId}
             />
             {certificatePreview && (
               <div className="mt-3">
@@ -684,9 +724,14 @@ const Admin = () => {
             />
           </div>
           <div className="mt-2">
-            <button type="submit" disabled={isSavingCertificate} className="w-full md:w-auto px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
-              {isSavingCertificate ? "Saving..." : "Save Certificate"}
-            </button>
+            <div className="flex gap-3">
+              <button type="submit" disabled={isSavingCertificate} className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
+                {isSavingCertificate ? (editingCertificateId ? 'Saving...' : 'Saving...') : (editingCertificateId ? 'Update Certificate' : 'Save Certificate')}
+              </button>
+              {editingCertificateId && (
+                <button type="button" onClick={()=>{ setEditingCertificateId(null); setCertificateImg(null); setCertificateLink(""); const input = document.getElementById('certificate-input'); if (input) input.value = ""; if (certificatePreview) { URL.revokeObjectURL(certificatePreview); setCertificatePreview(""); } }} className="px-6 py-3 rounded-lg bg-white/10 border border-white/10">Cancel</button>
+              )}
+            </div>
           </div>
         </form>
       </div>
@@ -701,6 +746,7 @@ const Admin = () => {
               <div className="flex items-center justify-between mt-2">
                 <div className="text-xs text-gray-400 truncate pr-2">{c.Link || "No credential link"}</div>
                 <div className="flex gap-2">
+                  <button onClick={()=>startEditCertificate(c)} className="px-2 py-1 rounded bg-white/10 text-xs border border-white/10">Edit</button>
                   {c.Link && (
                     <a href={c.Link} target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded bg-white/10 text-xs border border-white/10">Open</a>
                   )}
