@@ -3,7 +3,7 @@ import { Modal, IconButton, Box, Fade, Backdrop, Zoom, Typography } from "@mui/m
 import CloseIcon from "@mui/icons-material/Close"
 import FullscreenIcon from "@mui/icons-material/Fullscreen"
 
-const Certificate = ({ ImgSertif }) => {
+const Certificate = ({ ImgSertif, CredentialLink }) => {
 	const [open, setOpen] = useState(false)
 
 	const handleOpen = () => {
@@ -70,6 +70,22 @@ const Certificate = ({ ImgSertif }) => {
 						onClick={handleOpen}
 					/>
 				</Box>
+
+			{/* Credential Link below thumbnail */}
+			{CredentialLink ? (
+				<div className="mt-2">
+					<a
+						href={CredentialLink}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/10 hover:bg-white/20 text-white text-sm transition-colors"
+						style={{ textDecoration: 'none' }}
+					>
+						<span>View Credential</span>
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9-9"/><path d="M7 7h10v10"/></svg>
+					</a>
+				</div>
+			) : null}
 
 				{/* Hover Overlay */}
 				<Box
@@ -156,6 +172,19 @@ const Certificate = ({ ImgSertif }) => {
 							outline: "none",
 						},
 					}}>
+					{/* Credential link in modal header (top-left) */}
+					{CredentialLink ? (
+						<a
+							href={CredentialLink}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="absolute left-4 top-4 z-[2] inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-white/20 bg-white/10 text-white text-sm hover:bg-white/20"
+							style={{ textDecoration: 'none' }}
+						>
+							<span>Credential</span>
+							<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9-9"/><path d="M7 7h10v10"/></svg>
+						</a>
+					) : null}
 					{/* Close Button */}
 					<IconButton
 						onClick={handleClose}

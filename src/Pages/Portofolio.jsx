@@ -99,18 +99,12 @@ function a11yProps(index) {
 }
 
 const techStacks = [
-  { icon: "html.svg", language: "HTML" },
-  { icon: "css.svg", language: "CSS" },
   { icon: "javascript.svg", language: "JavaScript" },
   { icon: "tailwind.svg", language: "Tailwind CSS" },
   { icon: "reactjs.svg", language: "ReactJS" },
   { icon: "vite.svg", language: "Vite" },
   { icon: "nodejs.svg", language: "Node JS" },
-  { icon: "bootstrap.svg", language: "Bootstrap" },
   { icon: "firebase.svg", language: "Firebase" },
-  { icon: "MUI.svg", language: "Material UI" },
-  { icon: "vercel.svg", language: "Vercel" },
-  { icon: "SweetAlert.svg", language: "SweetAlert2" },
 ];
 
 export default function FullWidthTabs() {
@@ -158,7 +152,7 @@ export default function FullWidthTabs() {
         TechStack: Array.isArray(row.TechStack) ? row.TechStack : [],
       }));
 
-      const certificateData = (cert || []).map((row) => ({ id: row.id, Img: row.Img }));
+      const certificateData = (cert || []).map((row) => ({ id: row.id, Img: row.Img, Link: row.Link }));
 
       setProjects(projectData);
       setCertificates(certificateData);
@@ -336,7 +330,7 @@ export default function FullWidthTabs() {
                     data-aos={index % 3 === 0 ? "fade-up-right" : index % 3 === 1 ? "fade-up" : "fade-up-left"}
                     data-aos-duration={index % 3 === 0 ? "1000" : index % 3 === 1 ? "1200" : "1000"}
                   >
-                    <Certificate ImgSertif={certificate.Img} />
+                    <Certificate ImgSertif={certificate.Img} CredentialLink={certificate.Link} />
                   </div>
                 ))}
               </div>
