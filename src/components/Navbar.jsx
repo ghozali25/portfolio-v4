@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Menu, X, Globe } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
@@ -118,16 +118,6 @@ const Navbar = () => {
                             </a>
                         ))}
                         <ThemeToggle />
-                        <a
-                          href="https://www.google.com"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 h-9 px-3 text-sm text-[#e2d3fd]"
-                          title="Go to Google"
-                        >
-                          <Globe className="h-4 w-4" />
-                          <span>Google</span>
-                        </a>
                     </div>
                 </div>
     
@@ -159,17 +149,8 @@ const Navbar = () => {
             style={{ top: "64px", height: "calc(100vh - 64px)" }}
         >
             <div className="flex flex-col h-full overflow-y-auto">
-                <div className="px-4 py-4 flex items-center justify-end gap-3">
+                <div className="px-4 py-4 flex items-center justify-end">
                     <ThemeToggle compact />
-                    <a
-                      href="https://www.google.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 hover:bg-white/10 h-9 w-9"
-                      title="Google"
-                    >
-                      <Globe className="h-4 w-4 text-[#e2d3fd]" />
-                    </a>
                 </div>
                 <div className="px-4 py-2 space-y-4 flex-1">
                     {navItems.map((item, index) => (

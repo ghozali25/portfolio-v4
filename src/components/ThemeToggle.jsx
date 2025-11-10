@@ -20,8 +20,18 @@ const ThemeToggle = ({ compact = false, className = "" }) => {
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
-    if (stored === "dark" || stored === "light") setMode(stored);
-    else setMode("auto");
+    if (stored === "dark" || stored === "light") {
+      setMode(stored);
+      const root = document.documentElement;
+      if (stored === "dark") root.classList.add("dark");
+      else root.classList.remove("dark");
+    } else {
+      setMode("auto");
+      const root = document.documentElement;
+      if (systemDark) root.classList.add("dark");
+      else root.classList.remove("dark");
+      localStorage.setItem("theme", "auto");
+    }
   }, []);
 
   const applyTheme = (next) => {
@@ -46,6 +56,14 @@ const ThemeToggle = ({ compact = false, className = "" }) => {
     else if (mode === "dark") applyTheme("light");
     else applyTheme("auto");
   };
+
+  // Keep applying when in auto and system preference changes
+  useEffect(() => {
+    if (mode !== "auto") return;
+    const root = document.documentElement;
+    if (systemDark) root.classList.add("dark");
+    else root.classList.remove("dark");
+  }, [mode, systemDark]);
 
   const baseBtn = "inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 hover:bg-white/10 transition-colors";
   const size = compact ? "h-9 w-9" : "h-9 px-3";
