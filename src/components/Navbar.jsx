@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -90,7 +91,7 @@ const Navbar = () => {
     
                 {/* Desktop Navigation */}
                 <div className="hidden md:block">
-                    <div className="ml-8 flex items-center space-x-8">
+                    <div className="ml-8 flex items-center space-x-4">
                         {navItems.map((item) => (
                             <a
                                 key={item.label}
@@ -116,6 +117,7 @@ const Navbar = () => {
                                 />
                             </a>
                         ))}
+                        <ThemeToggle />
                     </div>
                 </div>
     
@@ -147,7 +149,10 @@ const Navbar = () => {
             style={{ top: "64px", height: "calc(100vh - 64px)" }}
         >
             <div className="flex flex-col h-full overflow-y-auto">
-                <div className="px-4 py-6 space-y-4 flex-1">
+                <div className="px-4 py-4 flex items-center justify-end">
+                    <ThemeToggle compact />
+                </div>
+                <div className="px-4 py-2 space-y-4 flex-1">
                     {navItems.map((item, index) => (
                         <a
                             key={item.label}
