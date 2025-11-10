@@ -181,6 +181,7 @@ const Admin = () => {
 
   // Certificate form state
   const [certificateImg, setCertificateImg] = useState(null);
+  const [certificateLink, setCertificateLink] = useState("");
   const [isSavingCertificate, setIsSavingCertificate] = useState(false);
   const [certificates, setCertificates] = useState([]);
   const [editingCertificateId, setEditingCertificateId] = useState(null);
@@ -290,7 +291,7 @@ const Admin = () => {
       const { data: pub } = supabase.storage.from('profile-images').getPublicUrl(filePath);
       const ImgUrl = pub?.publicUrl;
 
-      const { error: insErr } = await supabase.from('certificates').insert([{ Img: ImgUrl }]);
+      const { error: insErr } = await supabase.from('certificates').insert([{ Img: ImgUrl, Link: (certificateLink || null) }]);
       if (insErr) {
         Swal.fire("Error", (insErr.message || "Failed to add certificate") + "\nHint: Pastikan RLS policy INSERT untuk tabel 'certificates' sudah diizinkan untuk public.", "error");
         throw insErr;
@@ -298,6 +299,7 @@ const Admin = () => {
 
       Swal.fire("Success", "Certificate added", "success");
       setCertificateImg(null);
+      setCertificateLink("");
       if (certificatePreview) { URL.revokeObjectURL(certificatePreview); setCertificatePreview(""); }
       const input = document.getElementById("certificate-input");
       if (input) input.value = "";
@@ -671,6 +673,16 @@ const Admin = () => {
               </div>
             )}
           </div>
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">Credential Link (optional)</label>
+            <input
+              type="url"
+              placeholder="https://..."
+              className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none"
+              value={certificateLink}
+              onChange={(e)=>setCertificateLink(e.target.value)}
+            />
+          </div>
           <div className="mt-2">
             <button type="submit" disabled={isSavingCertificate} className="w-full md:w-auto px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
               {isSavingCertificate ? "Saving..." : "Save Certificate"}
@@ -684,9 +696,17 @@ const Admin = () => {
         <h2 className="text-xl font-semibold mb-4">Certificates</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {certificates.map((c) => (
-            <div key={c.id} className="relative group">
-              <img src={c.Img} alt="cert" className="w-full h-auto rounded-xl border border-white/10" />
-              <button onClick={()=>deleteCertificate(c)} className="absolute top-2 right-2 px-3 py-1 rounded bg-red-500/70 text-white text-sm opacity-0 group-hover:opacity-100 transition">Delete</button>
+            <div key={c.id} className="relative group p-2 rounded-xl bg-white/5 border border-white/10">
+              <img src={c.Img} alt="cert" className="w-full h-auto rounded-lg border border-white/10" />
+              <div className="flex items-center justify-between mt-2">
+                <div className="text-xs text-gray-400 truncate pr-2">{c.Link || "No credential link"}</div>
+                <div className="flex gap-2">
+                  {c.Link && (
+                    <a href={c.Link} target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded bg-white/10 text-xs border border-white/10">Open</a>
+                  )}
+                  <button onClick={()=>deleteCertificate(c)} className="px-2 py-1 rounded bg-red-500/70 text-white text-xs">Delete</button>
+                </div>
+              </div>
             </div>
           ))}
           {certificates.length === 0 && <p className="text-gray-400">Belum ada certificate.</p>}

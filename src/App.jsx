@@ -69,22 +69,8 @@ function App() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const root = document.documentElement;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const apply = (useDark) => {
-      if (useDark) root.classList.add('dark');
-      else root.classList.remove('dark');
-    };
-    const stored = localStorage.getItem('theme');
-    if (stored === 'dark' || stored === 'light') {
-      apply(stored === 'dark');
-    } else {
-      apply(mq.matches);
-      const onChange = (e) => apply(e.matches);
-      mq.addEventListener ? mq.addEventListener('change', onChange) : mq.addListener(onChange);
-      return () => {
-        mq.removeEventListener ? mq.removeEventListener('change', onChange) : mq.removeListener(onChange);
-      };
-    }
+    root.classList.add('dark');
+    try { localStorage.removeItem('theme'); } catch (_) {}
   }, []);
 
   useEffect(() => {
