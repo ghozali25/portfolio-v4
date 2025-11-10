@@ -44,7 +44,7 @@ const Certificate = ({ ImgSertif, CredentialLink }) => {
 				<Box
 					sx={{
 						position: "relative",
-						height: 220,
+						height: { xs: 180, sm: 200, md: 220, lg: 240 },
 						display: 'flex',
 						alignItems: 'center',
 						justifyContent: 'center',
