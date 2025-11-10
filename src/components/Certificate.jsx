@@ -53,6 +53,7 @@ const Certificate = ({ ImgSertif, CredentialLink }) => {
 							bottom: 0,
 							backgroundColor: "rgba(0, 0, 0, 0.1)",
 							zIndex: 1,
+							pointerEvents: 'none',
 						},
 					}}>
 					<img
@@ -73,12 +74,12 @@ const Certificate = ({ ImgSertif, CredentialLink }) => {
 
 				{/* Credential Link below thumbnail */}
 				{CredentialLink ? (
-					<div className="mt-2 relative z-[3]">
+					<div className="mt-3 relative z-[3] w-full flex justify-center">
 						<a
 							href={CredentialLink}
 							target="_blank"
 							rel="noopener noreferrer"
-							className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/10 hover:bg-white/20 text-white text-sm transition-colors"
+							className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/10 hover:bg-white/20 text-white text-sm transition-colors"
 							style={{ textDecoration: 'none', position: 'relative', zIndex: 3 }}
 						>
 							<span>View Credential</span>
