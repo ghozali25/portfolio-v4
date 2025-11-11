@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Share2, User, Mail, MessageSquare, Send } from "lucide-react";
 
 import SocialLinks from "../components/SocialLinks";
-import Komentar from "../components/Commentar";
+import { supabase } from "../lib/supabaseClient";
 import Swal from "sweetalert2";
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -14,11 +14,23 @@ const ContactPage = () => {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [clients, setClients] = useState([]);
 
   useEffect(() => {
     AOS.init({
       once: false,
     });
+  }, []);
+
+  useEffect(() => {
+    const fetchClients = async () => {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('created_at', { ascending: true });
+      if (!error) setClients(data || []);
+    };
+    fetchClients();
   }, []);
 
   const handleChange = (e) => {
@@ -207,8 +219,47 @@ const ContactPage = () => {
             </div>
           </div>
 
-          <div className="bg-[#1a1d23] rounded-3xl p-3 py-3 md:p-10 md:py-8 shadow-2xl transform transition-all duration-300 hover:shadow-[#6366f1]/10">
-            <Komentar />
+          <div className="bg-[#1a1d23] rounded-3xl p-3 py-6 md:p-10 md:py-10 shadow-2xl transform transition-all duration-300 hover:shadow-[#6366f1]/10 overflow-hidden">
+            <div className="flex justify-between items-start mb-3">
+              <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#6366f1] to-[#a855f7]">
+                <span
+                  style={{
+                    color: '#6366f1',
+                    backgroundImage: 'linear-gradient(45deg, #6366f1 10%, #a855f7 93%)',
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  Our Clients ({clients.length})
+                </span>
+              </h2>
+              <Share2 className="w-10 h-10 text-[#6366f1] opacity-50" />
+            </div>
+            <p className="text-gray-400 mb-6">Brands and teams I’ve collaborated with.</p>
+            {clients.length === 0 ? (
+              <p className="text-gray-400">Belum ada data client.</p>
+            ) : (
+              <div className="relative w-full overflow-hidden marquee-wrapper">
+                <div className="animate-marquee marquee-track">
+                  {clients.concat(clients).map((c, idx) => (
+                    <div key={`${c.id || idx}-${idx}`} className="shrink-0 inline-flex flex-col items-center">
+                      <img src={c.Img} alt={c.Name || "Client"} className="h-20 w-20 md:h-24 md:w-24 object-contain rounded-lg bg-white p-2 border border-gray-200 shadow-sm" />
+                      {c.Name && <span className="mt-2 text-xs text-gray-300">{c.Name}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <style>{`
+              .marquee-wrapper { mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }
+              .marquee-track { display: inline-flex; gap: 2rem; align-items: center; width: max-content; will-change: transform; }
+              .animate-marquee { animation: marquee 20s linear infinite; }
+              @keyframes marquee {
+                from { transform: translateX(0); }
+                to { transform: translateX(-50%); }
+              }
+            `}</style>
           </div>
         </div>
       </div>

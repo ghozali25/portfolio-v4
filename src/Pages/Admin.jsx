@@ -238,6 +238,13 @@ const Admin = () => {
   const [aboutSelectedFile, setAboutSelectedFile] = useState(null);
   const [aboutPreviewUrl, setAboutPreviewUrl] = useState("");
 
+  // Clients state
+  const [clientImg, setClientImg] = useState(null);
+  const [clientName, setClientName] = useState("");
+  const [clients, setClients] = useState([]);
+  const [isSavingClient, setIsSavingClient] = useState(false);
+  const [clientPreview, setClientPreview] = useState("");
+
   const handleProjectChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "Img") {
@@ -365,6 +372,12 @@ const Admin = () => {
     setCertificates(data || []);
   };
 
+  const loadClients = async () => {
+    const { data, error } = await supabase.from('clients').select('*').order('created_at', { ascending: true });
+    if (error) { console.error(error); return; }
+    setClients(data || []);
+  };
+
   const loadAboutPhoto = async () => {
     try {
       // Check if file exists by listing folder
@@ -383,7 +396,7 @@ const Admin = () => {
   };
 
   const loadData = async () => {
-    await Promise.all([loadProjects(), loadCertificates(), loadAboutPhoto(), loadAboutSummary(), loadCvLink()]);
+    await Promise.all([loadProjects(), loadCertificates(), loadClients(), loadAboutPhoto(), loadAboutSummary(), loadCvLink()]);
   };
 
   // Helpers
@@ -483,6 +496,47 @@ const Admin = () => {
     if (error) { console.error(error); Swal.fire("Error", error.message || "Failed to delete certificate", "error"); return; }
     await loadCertificates();
     Swal.fire("Deleted", "Certificate removed", "success");
+  };
+
+  // Create client
+  const onCreateClient = async (e) => {
+    e.preventDefault();
+    if (!clientImg) { Swal.fire("Required", "Client image is required", "warning"); return; }
+    setIsSavingClient(true);
+    try {
+      const filePath = `clients/${Date.now()}_${clientImg.name}`;
+      const { error: upErr } = await supabase.storage.from('profile-images').upload(filePath, clientImg, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from('profile-images').getPublicUrl(filePath);
+      const ImgUrl = pub?.publicUrl;
+
+      const { error: insErr } = await supabase.from('clients').insert([{ Img: ImgUrl, Name: (clientName || null) }]);
+      if (insErr) { Swal.fire("Error", insErr.message || "Failed to add client", "error"); throw insErr; }
+
+      Swal.fire("Success", "Client added", "success");
+      setClientImg(null); setClientName("");
+      if (clientPreview) { URL.revokeObjectURL(clientPreview); setClientPreview(""); }
+      const input = document.getElementById('client-input'); if (input) input.value = "";
+      await loadClients();
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to add client", "error");
+    } finally {
+      setIsSavingClient(false);
+    }
+  };
+
+  const deleteClient = async (c) => {
+    const res = await Swal.fire({ title: "Delete client?", icon: "warning", showCancelButton: true });
+    if (!res.isConfirmed) return;
+    try {
+      const path = getStoragePathFromUrl(c.Img);
+      if (path) await supabase.storage.from('profile-images').remove([path]);
+    } catch (e) { console.warn('Storage remove failed:', e?.message || e); }
+    const { error } = await supabase.from('clients').delete().eq('id', Number(c.id));
+    if (error) { console.error(error); Swal.fire("Error", error.message || "Failed to delete client", "error"); return; }
+    await loadClients();
+    Swal.fire("Deleted", "Client removed", "success");
   };
 
   return (
@@ -686,6 +740,59 @@ const Admin = () => {
           )}
         </div>
         <p className="text-xs text-gray-400 mt-2">Disimpan di Storage: profile-images/about/cv_link.txt</p>
+      </div>
+
+      {/* Clients Form */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-semibold mb-4">Add Client</h2>
+        <form onSubmit={onCreateClient} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">Client Image</label>
+            <input
+              id="client-input"
+              type="file"
+              accept="image/*"
+              className="w-full"
+              onChange={(e)=>{ const file=e.target.files?.[0]||null; setClientImg(file); if (clientPreview) { URL.revokeObjectURL(clientPreview);} if (file) setClientPreview(URL.createObjectURL(file)); else setClientPreview(""); }}
+              required
+            />
+            {clientPreview && (
+              <div className="mt-3">
+                <img src={clientPreview} alt="preview" className="w-32 h-32 object-contain rounded-lg border border-white/10 bg-white/5 p-2" />
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">Client Name (optional)</label>
+            <input
+              type="text"
+              value={clientName}
+              onChange={(e)=>setClientName(e.target.value)}
+              className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none"
+              placeholder="Company Name"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <button type="submit" disabled={isSavingClient} className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
+              {isSavingClient ? 'Saving...' : 'Save Client'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Clients List */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-semibold mb-4">Clients</h2>
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          {clients.map((c)=> (
+            <div key={c.id} className="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center gap-2">
+              <img src={c.Img} alt={c.Name||'Client'} className="w-20 h-20 object-contain rounded-lg bg-white/5 p-2 border border-white/10" />
+              <div className="text-xs text-gray-300 truncate w-full text-center">{c.Name || '—'}</div>
+              <button onClick={()=>deleteClient(c)} className="px-2 py-1 rounded bg-red-500/70 text-white text-xs">Delete</button>
+            </div>
+          ))}
+          {clients.length === 0 && <p className="text-gray-400">Belum ada client.</p>}
+        </div>
       </div>
 
       {/* Certificate Form */}
