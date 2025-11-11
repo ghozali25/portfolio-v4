@@ -99,6 +99,16 @@ function a11yProps(index) {
 }
 
 const techStacks = [
+  { icon: "looker.svg", language: "Looker" },
+  { icon: "PowerBI.svg", language: "Power BI" },
+  { icon: "tableau.svg", language: "Tableau" },
+  { icon: "excel.svg", language: "Excel" },
+  { icon: "mysql.svg", language: "MySQL" },
+  { icon: "postgresql.svg", language: "PostgreSQL" },
+  { icon: "Odoo.svg", language: "Odoo" },
+  { icon: "SAP.svg", language: "SAP" },
+  { icon: "Oracle.svg", language: "Oracle" },
+  { icon: "typescript.svg", language: "Typescript" },
   { icon: "javascript.svg", language: "JavaScript" },
   { icon: "tailwind.svg", language: "Tailwind CSS" },
   { icon: "reactjs.svg", language: "ReactJS" },
