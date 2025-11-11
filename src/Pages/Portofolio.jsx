@@ -105,6 +105,7 @@ const techStacks = [
   { icon: "excel.svg", language: "Excel" },
   { icon: "mysql.svg", language: "MySQL" },
   { icon: "postgresql.svg", language: "PostgreSQL" },
+  { icon: "GCP.svg", language: "Google Cloud" },
   { icon: "Odoo.svg", language: "Odoo" },
   { icon: "SAP.svg", language: "SAP" },
   { icon: "Oracle.svg", language: "Oracle" },
