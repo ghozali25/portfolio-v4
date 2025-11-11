@@ -3,5 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === 'production' ? '/portfolio-v4/' : '/', // ganti sesuai nama repo
+  base: './',
 })
+
+//base: process.env.NODE_ENV === 'production' ? '/portfolio-v4/' : '/', // ganti sesuai nama repo
