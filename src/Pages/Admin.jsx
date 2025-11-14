@@ -244,6 +244,8 @@ const Admin = () => {
   const [clients, setClients] = useState([]);
   const [isSavingClient, setIsSavingClient] = useState(false);
   const [clientPreview, setClientPreview] = useState("");
+  // Contacts state
+  const [contacts, setContacts] = useState([]);
 
   const handleProjectChange = (e) => {
     const { name, value, files } = e.target;
@@ -378,6 +380,12 @@ const Admin = () => {
     setClients(data || []);
   };
 
+  const loadContacts = async () => {
+    const { data, error } = await supabase.from('contacts').select('*').order('created_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    setContacts(data || []);
+  };
+
   const loadAboutPhoto = async () => {
     try {
       // Check if file exists by listing folder
@@ -396,7 +404,7 @@ const Admin = () => {
   };
 
   const loadData = async () => {
-    await Promise.all([loadProjects(), loadCertificates(), loadClients(), loadAboutPhoto(), loadAboutSummary(), loadCvLink()]);
+    await Promise.all([loadProjects(), loadCertificates(), loadClients(), loadContacts(), loadAboutPhoto(), loadAboutSummary(), loadCvLink()]);
   };
 
   // Helpers
@@ -637,6 +645,43 @@ const Admin = () => {
           ))}
           {projects.length === 0 && <p className="text-gray-400">Belum ada project.</p>}
         </div>
+      </div>
+
+      {/* Contacts / Messages */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-semibold mb-4">Contact Messages</h2>
+        {contacts.length === 0 ? (
+          <p className="text-gray-400">Belum ada pesan.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="text-left text-gray-300 border-b border-white/10">
+                  <th className="py-2 pr-4">Tanggal</th>
+                  <th className="py-2 pr-4">Nama</th>
+                  <th className="py-2 pr-4">Email</th>
+                  <th className="py-2">Pesan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {contacts.map((c) => (
+                  <tr key={c.id} className="border-b border-white/5 align-top">
+                    <td className="py-2 pr-4 text-gray-400 text-xs">
+                      {c.created_at ? new Date(c.created_at).toLocaleString() : '-'}
+                    </td>
+                    <td className="py-2 pr-4 font-medium">{c.name}</td>
+                    <td className="py-2 pr-4 text-blue-300 break-all">
+                      <a href={`mailto:${c.email}`} className="hover:underline">{c.email}</a>
+                    </td>
+                    <td className="py-2 text-gray-200 whitespace-pre-wrap">
+                      {c.message}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* About Photo */}
