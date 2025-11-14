@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import Swal from "sweetalert2";
-import { Bell, Eye, EyeOff } from "lucide-react";
+import { Bell, Eye, EyeOff, User, Lock } from "lucide-react";
 
 const Admin = () => {
   // Auth
@@ -629,50 +629,87 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#030014] text-white px-[5%] sm:px-[10%] py-10">
+    <div className="min-h-screen bg-gradient-to-br from-[#4c1d95] via-[#312e81] to-[#1e1b4b] text-white px-4 sm:px-8 py-10 flex items-center justify-center">
       {!isAuthed ? (
-        <div className="max-w-md mx-auto rounded-3xl p-[1px] bg-gradient-to-r from-[#6366f1] to-[#a855f7] shadow-[0_20px_60px_rgba(15,23,42,0.8)]">
-          <div className="w-full h-full rounded-3xl bg-[#050315]/95 px-6 py-7 border border-white/5">
-          <h1 className="text-2xl font-bold mb-1 text-transparent bg-clip-text bg-gradient-to-r from-[#6366f1] to-[#a855f7]">Admin Login</h1>
-          <p className="text-xs text-gray-400 mb-5">Masuk untuk mengelola project, konten, dan pesan kontak.</p>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm mb-1">Username</label>
-              <input
-                className="w-full p-3 rounded-lg bg-white/10 border border-white/10"
-                placeholder="your username"
-                value={loginForm.user}
-                onChange={(e)=>setLoginForm({...loginForm, user:e.target.value})}
-              />
+        <div className="w-full max-w-5xl bg-white/10 backdrop-blur-2xl rounded-3xl shadow-[0_24px_80px_rgba(15,23,42,0.9)] border border-white/10 overflow-hidden flex flex-col md:flex-row">
+          {/* Left welcome panel */}
+          <div className="relative md:w-1/2 p-8 sm:p-10 flex flex-col justify-center bg-gradient-to-br from-[#6366f1] via-[#a855f7] to-[#ec4899]">
+            <div className="absolute -bottom-20 -left-16 w-56 h-56 rounded-full bg-white/10 blur-3xl" />
+            <div className="absolute -top-10 right-0 w-40 h-40 rounded-full bg-purple-300/20 blur-3xl" />
+            <div className="relative z-10 space-y-4">
+              <h1 className="text-3xl sm:text-4xl font-bold leading-tight">Welcome to Admin Panel</h1>
+              <p className="text-sm sm:text-base text-white/80 max-w-md">
+                Kelola seluruh konten portfolio, project, sertifikat, dan pesan pengunjung dari satu tempat dengan tampilan yang nyaman.
+              </p>
             </div>
-            <div>
-              <label className="block text-sm mb-1">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className="w-full p-3 pr-10 rounded-lg bg-white/10 border border-white/10"
-                  placeholder="••••••••"
-                  value={loginForm.pass}
-                  onChange={(e)=>setLoginForm({...loginForm, pass:e.target.value})}
-                />
+            <div className="relative z-10 mt-8 flex flex-wrap gap-3 text-xs text-white/80">
+              <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20">Project Management</span>
+              <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20">Contact Messages</span>
+              <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20">Content Control</span>
+            </div>
+          </div>
+
+          {/* Right login form */}
+          <div className="md:w-1/2 bg-white text-slate-900 px-6 sm:px-10 py-8 flex items-center justify-center">
+            <div className="w-full max-w-sm">
+              <h2 className="text-sm font-semibold tracking-[0.2em] text-indigo-500 mb-2">USER LOGIN</h2>
+              <p className="text-xs text-slate-500 mb-6">Masuk menggunakan akun admin yang sudah terdaftar di Supabase.</p>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Username</label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                      <User className="w-4 h-4" />
+                    </span>
+                    <input
+                      className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                      placeholder="your username"
+                      value={loginForm.user}
+                      onChange={(e)=>setLoginForm({...loginForm, user:e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Password</label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                      <Lock className="w-4 h-4" />
+                    </span>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className="w-full pl-9 pr-10 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                      placeholder="••••••••"
+                      value={loginForm.pass}
+                      onChange={(e)=>setLoginForm({...loginForm, pass:e.target.value})}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-600"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-slate-500">
+                  <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" className="rounded border-slate-300 text-indigo-500 focus:ring-indigo-400" />
+                    <span>Remember me</span>
+                  </label>
+                  <button type="button" className="text-indigo-500 hover:text-indigo-600">Forgot password?</button>
+                </div>
+
                 <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-300 hover:text-white"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  type="submit"
+                  className="relative w-full mt-2 px-6 py-2.5 rounded-full overflow-hidden text-xs font-semibold tracking-wide shadow-md shadow-indigo-900/20 hover:shadow-lg hover:shadow-indigo-800/30 transition-all group text-white"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  <span className="absolute inset-0 bg-gradient-to-r from-[#6366f1] via-[#a855f7] to-[#ec4899] bg-[length:200%_100%] group-hover:bg-[position:100%_0] transition-[background-position] duration-500" />
+                  <span className="relative z-10">LOGIN</span>
                 </button>
-              </div>
+              </form>
             </div>
-            <button
-              type="submit"
-              className="relative w-full px-6 py-3 rounded-lg overflow-hidden text-sm font-medium tracking-wide shadow-md shadow-indigo-900/40 hover:shadow-lg hover:shadow-indigo-800/60 transition-all group"
-            >
-              <span className="absolute inset-0 bg-gradient-to-r from-[#6366f1] via-[#a855f7] to-[#6366f1] bg-[length:200%_100%] group-hover:bg-[position:100%_0] transition-[background-position] duration-500" />
-              <span className="relative z-10">Login</span>
-            </button>
-          </form>
           </div>
         </div>
       ) : (
