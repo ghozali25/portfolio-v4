@@ -556,6 +556,7 @@ const Admin = () => {
   const pageSizeContacts = 10;
   const totalContactsPages = Math.max(1, Math.ceil((contacts?.length || 0) / pageSizeContacts));
   const currentContacts = contacts.slice((contactsPage - 1) * pageSizeContacts, contactsPage * pageSizeContacts);
+  const unreadContactsCount = contacts.filter((c) => !c.is_read).length;
 
   const toggleSelectContact = (id) => {
     setSelectedContactIds((prev) =>
@@ -623,13 +624,19 @@ const Admin = () => {
           <div className="inline-flex items-center gap-2 text-xs text-gray-300 bg-white/5 border border-white/10 rounded-full px-3 py-1 w-fit">
             <div className="relative">
               <Bell className="w-4 h-4 text-[#6366f1]" />
-              {contacts.length > 0 && (
+              {unreadContactsCount > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-[10px] flex items-center justify-center text-white">
-                  {contacts.length}
+                  {unreadContactsCount}
                 </span>
               )}
             </div>
-            <span>{contacts.length > 0 ? `${contacts.length} contact message(s)` : "No contact messages"}</span>
+            <span>
+              {contacts.length === 0
+                ? "No contact messages"
+                : unreadContactsCount > 0
+                  ? `${unreadContactsCount} unread of ${contacts.length} messages`
+                  : `All ${contacts.length} messages read`}
+            </span>
           </div>
         </div>
         <button onClick={handleLogout} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10">Logout</button>
@@ -727,6 +734,29 @@ const Admin = () => {
                 >
                   Delete Selected ({selectedContactIds.length})
                 </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!selectedContactIds.length) {
+                      Swal.fire('Pilih pesan', 'Silakan pilih minimal satu pesan terlebih dahulu.', 'info');
+                      return;
+                    }
+                    try {
+                      const { error } = await supabase
+                        .from('contacts')
+                        .update({ is_read: true })
+                        .in('id', selectedContactIds);
+                      if (error) throw error;
+                      await loadContacts();
+                    } catch (e) {
+                      console.error(e);
+                      Swal.fire('Error', e.message || 'Failed to update messages', 'error');
+                    }
+                  }}
+                  className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Mark as read
+                </button>
                 <span className="text-gray-400 text-xs">
                   Page {contactsPage} of {totalContactsPages} (total {contacts.length})
                 </span>
@@ -769,6 +799,7 @@ const Admin = () => {
                     <th className="py-2 pr-4">Tanggal</th>
                     <th className="py-2 pr-4">Nama</th>
                     <th className="py-2 pr-4">Email</th>
+                    <th className="py-2 pr-4">Status</th>
                     <th className="py-2">Pesan</th>
                   </tr>
                 </thead>
@@ -789,6 +820,11 @@ const Admin = () => {
                       <td className="py-2 pr-4 font-medium align-top">{c.name}</td>
                       <td className="py-2 pr-4 text-blue-300 break-all align-top">
                         <a href={`mailto:${c.email}`} className="hover:underline">{c.email}</a>
+                      </td>
+                      <td className="py-2 pr-4 align-top">
+                        {c.is_read
+                          ? <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/15 text-[10px] text-emerald-300 border border-emerald-500/30">Sudah dibaca</span>
+                          : <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-yellow-500/15 text-[10px] text-yellow-300 border border-yellow-500/30">Belum dibaca</span>}
                       </td>
                       <td className="py-2 text-gray-200 whitespace-pre-wrap align-top">
                         {c.message}

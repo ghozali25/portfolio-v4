@@ -62,6 +62,7 @@ const ContactPage = () => {
           name: formData.name,
           email: formData.email,
           message: formData.message,
+          is_read: false,
         });
 
       if (error) throw error;
