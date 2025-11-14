@@ -713,12 +713,12 @@ const Admin = () => {
           </div>
         </div>
       ) : (
-      <>
-      <h1 className="text-3xl md:text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-[#6366f1] to-[#a855f7]">Admin Panel</h1>
+      <div className="w-full max-w-6xl bg-white/10 backdrop-blur-2xl rounded-3xl shadow-[0_24px_80px_rgba(15,23,42,0.9)] border border-white/10 px-4 sm:px-8 py-6 md:py-8">
       <div className="flex items-center justify-between mb-6">
         <div className="flex flex-col gap-2">
-          <p className="text-gray-400">Tambah, edit, hapus Projects dan Certificates. Data disimpan di Supabase (Postgres + Storage).</p>
-          <div className="inline-flex items-center gap-2 text-xs text-gray-300 bg-white/5 border border-white/10 rounded-full px-3 py-1 w-fit">
+          <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#6366f1] to-[#a855f7]">Admin Panel</h1>
+          <p className="text-gray-300 text-sm">Tambah, edit, hapus Projects, Certificates, Clients, dan pesan kontak. Data disimpan di Supabase (Postgres + Storage).</p>
+          <div className="inline-flex items-center gap-2 text-xs text-gray-200 bg-white/5 border border-white/10 rounded-full px-3 py-1 w-fit mt-1">
             <div className="relative">
               <Bell className="w-4 h-4 text-[#6366f1]" />
               {unreadContactsCount > 0 && (
@@ -736,10 +736,11 @@ const Admin = () => {
             </span>
           </div>
         </div>
-        <button onClick={handleLogout} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10">Logout</button>
+        <button onClick={handleLogout} className="px-4 py-2 rounded-full bg-white/10 border border-white/20 text-xs font-medium hover:bg-white/15">Logout</button>
       </div>
+
       {/* Contacts / Messages */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+      <div className="bg-[#050315]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
         <h2 className="text-xl font-semibold mb-4">Contact Messages</h2>
         {contacts.length === 0 ? (
           <p className="text-gray-400">Belum ada pesan.</p>
@@ -860,7 +861,7 @@ const Admin = () => {
       </div>
 
       {/* Project Form */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+      <div className="bg-[#050315]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
         <h2 className="text-xl font-semibold mb-4">{editingProjectId ? 'Edit Project' : 'Create Project'}</h2>
         <form onSubmit={editingProjectId ? saveEditProject : onCreateProject} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="col-span-1">
@@ -902,8 +903,15 @@ const Admin = () => {
             )}
           </div>
           <div className="col-span-1 md:col-span-2 mt-2 flex gap-3">
-            <button type="submit" disabled={isSavingProject} className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
-              {isSavingProject ? (editingProjectId ? "Updating..." : "Saving...") : (editingProjectId ? "Update Project" : "Save Project")}
+            <button
+              type="submit"
+              disabled={isSavingProject}
+              className="relative px-6 py-3 rounded-lg overflow-hidden disabled:opacity-60 group"
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-[#6366f1] via-[#a855f7] to-[#ec4899] bg-[length:200%_100%] group-hover:bg-[position:100%_0] transition-[background-position] duration-500" />
+              <span className="relative z-10">
+                {isSavingProject ? (editingProjectId ? "Updating..." : "Saving...") : (editingProjectId ? "Update Project" : "Save Project")}
+              </span>
             </button>
             {editingProjectId && (
               <button type="button" onClick={resetProjectForm} className="px-6 py-3 rounded-lg bg-white/10 border border-white/10">
@@ -915,7 +923,7 @@ const Admin = () => {
       </div>
 
       {/* Project List */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+      <div className="bg-[#050315]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
         <h2 className="text-xl font-semibold mb-4">Projects</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {projects.map((p) => (
@@ -935,7 +943,7 @@ const Admin = () => {
       </div>
 
       {/* About Photo */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+      <div className="bg-[#050315]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
         <h2 className="text-xl font-semibold mb-4">About Photo</h2>
         <div className="flex flex-col md:flex-row gap-6 items-start">
           <div className="w-40 h-40 rounded-full overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center">
@@ -985,7 +993,7 @@ const Admin = () => {
       </div>
 
       {/* About Summary */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+      <div className="bg-[#050315]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
         <h2 className="text-xl font-semibold mb-4">About Summary</h2>
         <textarea
           className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none min-h-[140px]"
@@ -994,8 +1002,13 @@ const Admin = () => {
           onChange={(e)=>setAboutSummary(e.target.value)}
         />
         <div className="mt-3 flex gap-3">
-          <button onClick={saveAboutSummary} disabled={aboutSummarySaving} className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
-            {aboutSummarySaving ? 'Saving...' : 'Save'}
+          <button
+            onClick={saveAboutSummary}
+            disabled={aboutSummarySaving}
+            className="relative px-4 py-2 rounded-lg overflow-hidden disabled:opacity-60 group"
+          >
+            <span className="absolute inset-0 bg-gradient-to-r from-[#6366f1] via-[#a855f7] to-[#ec4899] bg-[length:200%_100%] group-hover:bg-[position:100%_0] transition-[background-position] duration-500" />
+            <span className="relative z-10">{aboutSummarySaving ? 'Saving...' : 'Save'}</span>
           </button>
           {aboutSummary && (
             <button onClick={deleteAboutSummary} className="px-4 py-2 rounded-lg bg-red-500/20 text-red-300">Delete</button>
@@ -1005,7 +1018,7 @@ const Admin = () => {
       </div>
 
       {/* About CV Link (PDF only) */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+      <div className="bg-[#050315]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
         <h2 className="text-xl font-semibold mb-2">About CV (PDF)</h2>
         <p className="text-xs text-gray-400 mb-3">Masukkan tautan ke file CV dalam format PDF (bukan foto profil). Contoh: tautan Google Drive yang mengarah ke PDF.</p>
         <input
@@ -1027,8 +1040,13 @@ const Admin = () => {
           autoComplete="off"
         />
         <div className="mt-3 flex gap-3">
-          <button onClick={saveCvLink} disabled={cvSaving} className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
-            {cvSaving ? 'Saving...' : 'Save'}
+          <button
+            onClick={saveCvLink}
+            disabled={cvSaving}
+            className="relative px-4 py-2 rounded-lg overflow-hidden disabled:opacity-60 group"
+          >
+            <span className="absolute inset-0 bg-gradient-to-r from-[#6366f1] via-[#a855f7] to-[#ec4899] bg-[length:200%_100%] group-hover:bg-[position:100%_0] transition-[background-position] duration-500" />
+            <span className="relative z-10">{cvSaving ? 'Saving...' : 'Save'}</span>
           </button>
           {cvLink && (
             <button onClick={deleteCvLink} className="px-4 py-2 rounded-lg bg-red-500/20 text-red-300">Delete</button>
@@ -1038,7 +1056,7 @@ const Admin = () => {
       </div>
 
       {/* Clients Form */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+      <div className="bg-[#050315]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
         <h2 className="text-xl font-semibold mb-4">Add Client</h2>
         <form onSubmit={onCreateClient} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -1068,15 +1086,20 @@ const Admin = () => {
             />
           </div>
           <div className="md:col-span-2">
-            <button type="submit" disabled={isSavingClient} className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
-              {isSavingClient ? 'Saving...' : 'Save Client'}
+            <button
+              type="submit"
+              disabled={isSavingClient}
+              className="relative px-6 py-3 rounded-lg overflow-hidden disabled:opacity-60 group"
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-[#6366f1] via-[#a855f7] to-[#ec4899] bg-[length:200%_100%] group-hover:bg-[position:100%_0] transition-[background-position] duration-500" />
+              <span className="relative z-10">{isSavingClient ? 'Saving...' : 'Save Client'}</span>
             </button>
           </div>
         </form>
       </div>
 
       {/* Clients List */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+      <div className="bg-[#050315]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
         <h2 className="text-xl font-semibold mb-4">Clients</h2>
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
           {clients.map((c)=> (
@@ -1091,7 +1114,7 @@ const Admin = () => {
       </div>
 
       {/* Certificate Form */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8">
+      <div className="bg-[#050315]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8">
         <h2 className="text-xl font-semibold mb-4">{editingCertificateId ? 'Edit Certificate' : 'Add Certificate'}</h2>
         <form onSubmit={editingCertificateId ? saveEditCertificate : onCreateCertificate} className="grid grid-cols-1 gap-4">
           <div>
@@ -1127,8 +1150,15 @@ const Admin = () => {
           </div>
           <div className="mt-2">
             <div className="flex gap-3">
-              <button type="submit" disabled={isSavingCertificate} className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
-                {isSavingCertificate ? (editingCertificateId ? 'Saving...' : 'Saving...') : (editingCertificateId ? 'Update Certificate' : 'Save Certificate')}
+              <button
+                type="submit"
+                disabled={isSavingCertificate}
+                className="relative px-6 py-3 rounded-lg overflow-hidden disabled:opacity-60 group"
+              >
+                <span className="absolute inset-0 bg-gradient-to-r from-[#6366f1] via-[#a855f7] to-[#ec4899] bg-[length:200%_100%] group-hover:bg-[position:100%_0] transition-[background-position] duration-500" />
+                <span className="relative z-10">
+                  {isSavingCertificate ? (editingCertificateId ? 'Saving...' : 'Saving...') : (editingCertificateId ? 'Update Certificate' : 'Save Certificate')}
+                </span>
               </button>
               {editingCertificateId && (
                 <button type="button" onClick={()=>{ setEditingCertificateId(null); setCertificateImg(null); setCertificateLink(""); const input = document.getElementById('certificate-input'); if (input) input.value = ""; if (certificatePreview) { URL.revokeObjectURL(certificatePreview); setCertificatePreview(""); } }} className="px-6 py-3 rounded-lg bg-white/10 border border-white/10">Cancel</button>
@@ -1160,7 +1190,7 @@ const Admin = () => {
           {certificates.length === 0 && <p className="text-gray-400">Belum ada certificate.</p>}
         </div>
       </div>
-      </>
+      </div>
       )}
     </div>
   );
