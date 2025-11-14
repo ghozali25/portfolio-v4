@@ -17,7 +17,14 @@ const LandingPage = ({ showWelcome, setShowWelcome }) => {
       <AnimatePresence mode="wait">
         {showWelcome && (
           <Suspense fallback={null}>
-            <WelcomeScreen onLoadingComplete={() => setShowWelcome(false)} />
+            <WelcomeScreen
+              onLoadingComplete={() => {
+                try {
+                  localStorage.setItem('hasSeenWelcome', '1');
+                } catch (_) {}
+                setShowWelcome(false);
+              }}
+            />
           </Suspense>
         )}
       </AnimatePresence>
@@ -81,7 +88,14 @@ const ProjectPageLayout = ({ id }) => (
 );
 
 function App() {
-  const [showWelcome, setShowWelcome] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return !localStorage.getItem('hasSeenWelcome');
+    } catch (_) {
+      return true;
+    }
+  });
   const [hash, setHash] = useState(typeof window !== 'undefined' ? window.location.hash : '');
 
   useEffect(() => {
