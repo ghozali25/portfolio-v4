@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import Swal from "sweetalert2";
-import { Bell } from "lucide-react";
+import { Bell, Eye, EyeOff } from "lucide-react";
 
 const Admin = () => {
   // Auth
   const [isAuthed, setIsAuthed] = useState(() => localStorage.getItem("admin_auth") === "1");
   const [loginForm, setLoginForm] = useState({ user: "", pass: "" });
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isAuthed) {
@@ -14,13 +15,42 @@ const Admin = () => {
     }
   }, [isAuthed]);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (loginForm.user === "ali" && loginForm.pass === "ali123") {
+    const username = (loginForm.user || "").trim();
+    const password = loginForm.pass || "";
+
+    if (!username || !password) {
+      Swal.fire("Login gagal", "Username dan password wajib diisi", "warning");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('id, username')
+        .eq('username', username)
+        .eq('password', password)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error(error);
+        Swal.fire("Error", "Gagal menghubungi server auth", "error");
+        return;
+      }
+
+      if (!data) {
+        Swal.fire("Login gagal", "Username atau password salah", "error");
+        return;
+      }
+
       localStorage.setItem("admin_auth", "1");
       setIsAuthed(true);
-    } else {
-      Swal.fire("Login gagal", "Username atau password salah", "error");
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Terjadi kesalahan saat login", "error");
     }
   };
 
@@ -606,11 +636,32 @@ const Admin = () => {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm mb-1">Username</label>
-              <input className="w-full p-3 rounded-lg bg-white/10 border border-white/10" value={loginForm.user} onChange={(e)=>setLoginForm({...loginForm, user:e.target.value})} />
+              <input
+                className="w-full p-3 rounded-lg bg-white/10 border border-white/10"
+                placeholder="your username"
+                value={loginForm.user}
+                onChange={(e)=>setLoginForm({...loginForm, user:e.target.value})}
+              />
             </div>
             <div>
               <label className="block text-sm mb-1">Password</label>
-              <input type="password" className="w-full p-3 rounded-lg bg-white/10 border border-white/10" value={loginForm.pass} onChange={(e)=>setLoginForm({...loginForm, pass:e.target.value})} />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="w-full p-3 pr-10 rounded-lg bg-white/10 border border-white/10"
+                  placeholder="your password"
+                  value={loginForm.pass}
+                  onChange={(e)=>setLoginForm({...loginForm, pass:e.target.value})}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-300 hover:text-white"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
             <button type="submit" className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7]">Login</button>
           </form>
@@ -641,82 +692,6 @@ const Admin = () => {
         </div>
         <button onClick={handleLogout} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10">Logout</button>
       </div>
-
-      {/* Project Form */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
-        <h2 className="text-xl font-semibold mb-4">{editingProjectId ? 'Edit Project' : 'Create Project'}</h2>
-        <form onSubmit={editingProjectId ? saveEditProject : onCreateProject} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="col-span-1">
-            <label className="block text-sm text-gray-300 mb-1">Title</label>
-            <input name="Title" value={projectForm.Title} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" required />
-          </div>
-          <div className="col-span-1">
-            <label className="block text-sm text-gray-300 mb-1">Link (Live)</label>
-            <input name="Link" value={projectForm.Link} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" />
-          </div>
-          <div className="col-span-1">
-            <label className="block text-sm text-gray-300 mb-1">Github</label>
-            <input name="Github" value={projectForm.Github} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" />
-          </div>
-          <div className="col-span-1 md:col-span-2">
-            <label className="block text-sm text-gray-300 mb-1">Description</label>
-            <textarea name="Description" value={projectForm.Description} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" rows={3} required />
-          </div>
-          <div className="col-span-1">
-            <label className="block text-sm text-gray-300 mb-1">Tech Stack (pisahkan dengan koma)</label>
-            <input name="TechStack" value={projectForm.TechStack} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" placeholder="React,Tailwind,Firebase" />
-          </div>
-          <div className="col-span-1">
-            <label className="block text-sm text-gray-300 mb-1">Features (pisahkan dengan koma)</label>
-            <input name="Features" value={projectForm.Features} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" placeholder="Auth,Dashboard,etc" />
-          </div>
-          <div className="col-span-1 md:col-span-2">
-            <label className="block text-sm text-gray-300 mb-1">Image {editingProjectId ? '(kosongkan jika tidak ganti)' : ''}</label>
-            <input name="Img" type="file" accept="image/*" onChange={(e) => {
-              const file = e.target.files?.[0] || null;
-              setProjectForm({ ...projectForm, Img: file });
-              if (projectImgPreview) { URL.revokeObjectURL(projectImgPreview); }
-              if (file) setProjectImgPreview(URL.createObjectURL(file)); else setProjectImgPreview("");
-            }} className="w-full" />
-            {projectImgPreview && (
-              <div className="mt-3">
-                <img src={projectImgPreview} alt="preview" className="w-48 h-32 object-cover rounded-lg border border-white/10" />
-              </div>
-            )}
-          </div>
-          <div className="col-span-1 md:col-span-2 mt-2 flex gap-3">
-            <button type="submit" disabled={isSavingProject} className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
-              {isSavingProject ? (editingProjectId ? "Updating..." : "Saving...") : (editingProjectId ? "Update Project" : "Save Project")}
-            </button>
-            {editingProjectId && (
-              <button type="button" onClick={resetProjectForm} className="px-6 py-3 rounded-lg bg-white/10 border border-white/10">
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-
-      {/* Project List */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
-        <h2 className="text-xl font-semibold mb-4">Projects</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {projects.map((p) => (
-            <div key={p.id} className="p-4 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">{p.Title}</h3>
-                <div className="flex gap-2">
-                  <button onClick={()=>startEditProject(p)} className="px-3 py-1 rounded bg-white/10">Edit</button>
-                  <button onClick={()=>deleteProject(p)} className="px-3 py-1 rounded bg-red-500/20 text-red-300">Delete</button>
-                </div>
-              </div>
-              <p className="text-sm text-gray-400 line-clamp-2">{p.Description}</p>
-            </div>
-          ))}
-          {projects.length === 0 && <p className="text-gray-400">Belum ada project.</p>}
-        </div>
-      </div>
-
       {/* Contacts / Messages */}
       <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
         <h2 className="text-xl font-semibold mb-4">Contact Messages</h2>
@@ -836,6 +811,81 @@ const Admin = () => {
             </div>
           </>
         )}
+      </div>
+
+      {/* Project Form */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-semibold mb-4">{editingProjectId ? 'Edit Project' : 'Create Project'}</h2>
+        <form onSubmit={editingProjectId ? saveEditProject : onCreateProject} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Title</label>
+            <input name="Title" value={projectForm.Title} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" required />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Link (Live)</label>
+            <input name="Link" value={projectForm.Link} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Github</label>
+            <input name="Github" value={projectForm.Github} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" />
+          </div>
+          <div className="col-span-1 md:col-span-2">
+            <label className="block text-sm text-gray-300 mb-1">Description</label>
+            <textarea name="Description" value={projectForm.Description} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" rows={3} required />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Tech Stack (pisahkan dengan koma)</label>
+            <input name="TechStack" value={projectForm.TechStack} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" placeholder="React,Tailwind,Firebase" />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Features (pisahkan dengan koma)</label>
+            <input name="Features" value={projectForm.Features} onChange={handleProjectChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" placeholder="Auth,Dashboard,etc" />
+          </div>
+          <div className="col-span-1 md:col-span-2">
+            <label className="block text-sm text-gray-300 mb-1">Image {editingProjectId ? '(kosongkan jika tidak ganti)' : ''}</label>
+            <input name="Img" type="file" accept="image/*" onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              setProjectForm({ ...projectForm, Img: file });
+              if (projectImgPreview) { URL.revokeObjectURL(projectImgPreview); }
+              if (file) setProjectImgPreview(URL.createObjectURL(file)); else setProjectImgPreview("");
+            }} className="w-full" />
+            {projectImgPreview && (
+              <div className="mt-3">
+                <img src={projectImgPreview} alt="preview" className="w-48 h-32 object-cover rounded-lg border border-white/10" />
+              </div>
+            )}
+          </div>
+          <div className="col-span-1 md:col-span-2 mt-2 flex gap-3">
+            <button type="submit" disabled={isSavingProject} className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] disabled:opacity-60">
+              {isSavingProject ? (editingProjectId ? "Updating..." : "Saving...") : (editingProjectId ? "Update Project" : "Save Project")}
+            </button>
+            {editingProjectId && (
+              <button type="button" onClick={resetProjectForm} className="px-6 py-3 rounded-lg bg-white/10 border border-white/10">
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {/* Project List */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-semibold mb-4">Projects</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {projects.map((p) => (
+            <div key={p.id} className="p-4 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">{p.Title}</h3>
+                <div className="flex gap-2">
+                  <button onClick={()=>startEditProject(p)} className="px-3 py-1 rounded bg-white/10">Edit</button>
+                  <button onClick={()=>deleteProject(p)} className="px-3 py-1 rounded bg-red-500/20 text-red-300">Delete</button>
+                </div>
+              </div>
+              <p className="text-sm text-gray-400 line-clamp-2">{p.Description}</p>
+            </div>
+          ))}
+          {projects.length === 0 && <p className="text-gray-400">Belum ada project.</p>}
+        </div>
       </div>
 
       {/* About Photo */}
