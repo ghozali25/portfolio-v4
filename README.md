@@ -60,8 +60,8 @@ If you encounter issues while running the project, ensure that:
 Create a `.env` file based on `.env.example` and fill with your Supabase project credentials:
 
 ```bash
-VITE_SUPABASE_URL=https://fukwqchnqhvtdcebdzab.supabase.co
-VITE_SUPABASE_ANON_KEY=sb_publishable_9tnkU8l7Q055GFJgRsb4zw_z3mco425
+VITE_SUPABASE_URL=your supabase url
+VITE_SUPABASE_ANON_KEY=your supabase anon key
 ```
 
 Restart the dev server after editing `.env`.
