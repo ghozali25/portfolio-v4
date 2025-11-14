@@ -55,12 +55,16 @@ const ContactPage = () => {
     });
 
     try {
-      // Get form data
-      const form = e.target;
-      const formData = new FormData(form);
+      // Save contact message to Supabase
+      const { data, error } = await supabase
+        .from('contacts')
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+        });
 
-      // Submit form
-      await form.submit();
+      if (error) throw error;
 
       // Show success message
       Swal.fire({
@@ -143,15 +147,9 @@ const ContactPage = () => {
             </div>
 
             <form 
-              action="https://formsubmit.co/ghozali.ahmd25@gmail.com"
-              method="POST"
               onSubmit={handleSubmit}
               className="space-y-6"
             >
-              {/* FormSubmit Configuration */}
-              <input type="hidden" name="_template" value="table" />
-              <input type="hidden" name="_captcha" value="false" />
-
               <div
                 data-aos="fade-up"
                 data-aos-delay="100"
