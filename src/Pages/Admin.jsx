@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import Swal from "sweetalert2";
+import { Bell } from "lucide-react";
 
 const Admin = () => {
   // Auth
@@ -617,7 +618,20 @@ const Admin = () => {
       <>
       <h1 className="text-3xl md:text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-[#6366f1] to-[#a855f7]">Admin Panel</h1>
       <div className="flex items-center justify-between mb-6">
-        <p className="text-gray-400">Tambah, edit, hapus Projects dan Certificates. Data disimpan di Supabase (Postgres + Storage).</p>
+        <div className="flex flex-col gap-2">
+          <p className="text-gray-400">Tambah, edit, hapus Projects dan Certificates. Data disimpan di Supabase (Postgres + Storage).</p>
+          <div className="inline-flex items-center gap-2 text-xs text-gray-300 bg-white/5 border border-white/10 rounded-full px-3 py-1 w-fit">
+            <div className="relative">
+              <Bell className="w-4 h-4 text-[#6366f1]" />
+              {contacts.length > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-[10px] flex items-center justify-center text-white">
+                  {contacts.length}
+                </span>
+              )}
+            </div>
+            <span>{contacts.length > 0 ? `${contacts.length} contact message(s)` : "No contact messages"}</span>
+          </div>
+        </div>
         <button onClick={handleLogout} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10">Logout</button>
       </div>
 
