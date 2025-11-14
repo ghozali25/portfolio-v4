@@ -165,6 +165,7 @@ const ContactPage = () => {
                   value={formData.name}
                   onChange={handleChange}
                   disabled={isSubmitting}
+                  autoComplete="name"
                   className="w-full p-4 pl-12 bg-[#2f3138] rounded-xl border border-[#2f3138] placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-[#6366f1]/30 transition-all duration-300 hover:border-[#6366f1]/30 disabled:opacity-50"
                   required
                 />
@@ -182,6 +183,7 @@ const ContactPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   disabled={isSubmitting}
+                  autoComplete="email"
                   className="w-full p-4 pl-12 bg-[#2f3138] rounded-xl border border-[#2f3138] placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-[#6366f1]/30 transition-all duration-300 hover:border-[#6366f1]/30 disabled:opacity-50"
                   required
                 />
@@ -198,6 +200,7 @@ const ContactPage = () => {
                   value={formData.message}
                   onChange={handleChange}
                   disabled={isSubmitting}
+                  autoComplete="off"
                   className="w-full resize-none p-4 pl-12 bg-[#2f3138] rounded-xl border border-[#2f3138] placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-[#6366f1]/30 transition-all duration-300 hover:border-[#6366f1]/30 h-[9.9rem] disabled:opacity-50"
                   required
                 />
