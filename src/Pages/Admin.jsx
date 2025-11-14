@@ -631,8 +631,10 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-[#030014] text-white px-[5%] sm:px-[10%] py-10">
       {!isAuthed ? (
-        <div className="max-w-md mx-auto bg-white/5 border border-white/10 rounded-2xl p-6">
-          <h1 className="text-2xl font-bold mb-4">Admin Login</h1>
+        <div className="max-w-md mx-auto rounded-3xl p-[1px] bg-gradient-to-r from-[#6366f1] to-[#a855f7] shadow-[0_20px_60px_rgba(15,23,42,0.8)]">
+          <div className="w-full h-full rounded-3xl bg-[#050315]/95 px-6 py-7 border border-white/5">
+          <h1 className="text-2xl font-bold mb-1 text-transparent bg-clip-text bg-gradient-to-r from-[#6366f1] to-[#a855f7]">Admin Login</h1>
+          <p className="text-xs text-gray-400 mb-5">Masuk untuk mengelola project, konten, dan pesan kontak.</p>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm mb-1">Username</label>
@@ -649,7 +651,7 @@ const Admin = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   className="w-full p-3 pr-10 rounded-lg bg-white/10 border border-white/10"
-                  placeholder="your password"
+                  placeholder="••••••••"
                   value={loginForm.pass}
                   onChange={(e)=>setLoginForm({...loginForm, pass:e.target.value})}
                 />
@@ -663,8 +665,15 @@ const Admin = () => {
                 </button>
               </div>
             </div>
-            <button type="submit" className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7]">Login</button>
+            <button
+              type="submit"
+              className="relative w-full px-6 py-3 rounded-lg overflow-hidden text-sm font-medium tracking-wide shadow-md shadow-indigo-900/40 hover:shadow-lg hover:shadow-indigo-800/60 transition-all group"
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-[#6366f1] via-[#a855f7] to-[#6366f1] bg-[length:200%_100%] group-hover:bg-[position:100%_0] transition-[background-position] duration-500" />
+              <span className="relative z-10">Login</span>
+            </button>
           </form>
+          </div>
         </div>
       ) : (
       <>
