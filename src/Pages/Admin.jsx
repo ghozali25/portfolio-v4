@@ -246,6 +246,8 @@ const Admin = () => {
   const [clientPreview, setClientPreview] = useState("");
   // Contacts state
   const [contacts, setContacts] = useState([]);
+  const [contactsPage, setContactsPage] = useState(1);
+  const [selectedContactIds, setSelectedContactIds] = useState([]);
 
   const handleProjectChange = (e) => {
     const { name, value, files } = e.target;
@@ -384,6 +386,8 @@ const Admin = () => {
     const { data, error } = await supabase.from('contacts').select('*').order('created_at', { ascending: false });
     if (error) { console.error(error); return; }
     setContacts(data || []);
+    setContactsPage(1);
+    setSelectedContactIds([]);
   };
 
   const loadAboutPhoto = async () => {
@@ -547,6 +551,51 @@ const Admin = () => {
     Swal.fire("Deleted", "Client removed", "success");
   };
 
+  // Contacts helpers
+  const pageSizeContacts = 10;
+  const totalContactsPages = Math.max(1, Math.ceil((contacts?.length || 0) / pageSizeContacts));
+  const currentContacts = contacts.slice((contactsPage - 1) * pageSizeContacts, contactsPage * pageSizeContacts);
+
+  const toggleSelectContact = (id) => {
+    setSelectedContactIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllCurrentContacts = () => {
+    const currentIds = currentContacts.map((c) => c.id);
+    const allSelected = currentIds.every((id) => selectedContactIds.includes(id));
+    if (allSelected) {
+      setSelectedContactIds((prev) => prev.filter((id) => !currentIds.includes(id)));
+    } else {
+      setSelectedContactIds((prev) => Array.from(new Set([...prev, ...currentIds])));
+    }
+  };
+
+  const handleBulkDeleteContacts = async () => {
+    if (!selectedContactIds.length) return;
+    const res = await Swal.fire({
+      title: 'Delete selected messages?',
+      text: `Total ${selectedContactIds.length} pesan akan dihapus.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete',
+    });
+    if (!res.isConfirmed) return;
+    try {
+      const { error } = await supabase
+        .from('contacts')
+        .delete()
+        .in('id', selectedContactIds);
+      if (error) throw error;
+      await loadContacts();
+      Swal.fire('Deleted', 'Selected messages removed', 'success');
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Error', e.message || 'Failed to delete messages', 'error');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#030014] text-white px-[5%] sm:px-[10%] py-10">
       {!isAuthed ? (
@@ -653,34 +702,89 @@ const Admin = () => {
         {contacts.length === 0 ? (
           <p className="text-gray-400">Belum ada pesan.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-300 border-b border-white/10">
-                  <th className="py-2 pr-4">Tanggal</th>
-                  <th className="py-2 pr-4">Nama</th>
-                  <th className="py-2 pr-4">Email</th>
-                  <th className="py-2">Pesan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {contacts.map((c) => (
-                  <tr key={c.id} className="border-b border-white/5 align-top">
-                    <td className="py-2 pr-4 text-gray-400 text-xs">
-                      {c.created_at ? new Date(c.created_at).toLocaleString() : '-'}
-                    </td>
-                    <td className="py-2 pr-4 font-medium">{c.name}</td>
-                    <td className="py-2 pr-4 text-blue-300 break-all">
-                      <a href={`mailto:${c.email}`} className="hover:underline">{c.email}</a>
-                    </td>
-                    <td className="py-2 text-gray-200 whitespace-pre-wrap">
-                      {c.message}
-                    </td>
+          <>
+            <div className="flex items-center justify-between mb-3 text-sm">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleBulkDeleteContacts}
+                  disabled={!selectedContactIds.length}
+                  className="px-4 py-2 rounded-lg bg-red-500/80 text-white disabled:opacity-40 disabled:cursor-not-allowed text-xs"
+                >
+                  Delete Selected ({selectedContactIds.length})
+                </button>
+                <span className="text-gray-400 text-xs">
+                  Page {contactsPage} of {totalContactsPages} (total {contacts.length})
+                </span>
+              </div>
+              <div className="flex gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setContactsPage((p) => Math.max(1, p - 1))}
+                  disabled={contactsPage === 1}
+                  className="px-3 py-1 rounded bg-white/10 border border-white/10 disabled:opacity-40"
+                >
+                  Prev
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setContactsPage((p) => Math.min(totalContactsPages, p + 1))}
+                  disabled={contactsPage === totalContactsPages}
+                  className="px-3 py-1 rounded bg-white/10 border border-white/10 disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-300 border-b border-white/10">
+                    <th className="py-2 pr-3">
+                      <input
+                        type="checkbox"
+                        className="accent-[#6366f1]"
+                        onChange={toggleSelectAllCurrentContacts}
+                        checked={
+                          currentContacts.length > 0 &&
+                          currentContacts.every((c) => selectedContactIds.includes(c.id))
+                        }
+                      />
+                    </th>
+                    <th className="py-2 pr-4">Tanggal</th>
+                    <th className="py-2 pr-4">Nama</th>
+                    <th className="py-2 pr-4">Email</th>
+                    <th className="py-2">Pesan</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {currentContacts.map((c) => (
+                    <tr key={c.id} className="border-b border-white/5 align-top">
+                      <td className="py-2 pr-3 align-top">
+                        <input
+                          type="checkbox"
+                          className="accent-[#6366f1]"
+                          checked={selectedContactIds.includes(c.id)}
+                          onChange={() => toggleSelectContact(c.id)}
+                        />
+                      </td>
+                      <td className="py-2 pr-4 text-gray-400 text-xs align-top">
+                        {c.created_at ? new Date(c.created_at).toLocaleString() : '-'}
+                      </td>
+                      <td className="py-2 pr-4 font-medium align-top">{c.name}</td>
+                      <td className="py-2 pr-4 text-blue-300 break-all align-top">
+                        <a href={`mailto:${c.email}`} className="hover:underline">{c.email}</a>
+                      </td>
+                      <td className="py-2 text-gray-200 whitespace-pre-wrap align-top">
+                        {c.message}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
