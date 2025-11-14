@@ -76,15 +76,18 @@ Restart the dev server after editing `.env`.
   - Project detail: `/#project/:id`
 
 - Admin login:
-  - Username: `ali`
-  - Password: `ali123`
+  - Credentials are no longer hardcoded.
+  - Username & password are read from the Supabase table `admin_users`.
+  - Create accounts via SQL (see **Admin users** section below).
 
-In Admin you can manage:
+In Admin you can:
 - Projects (CRUD + image upload)
 - Certificates (CRUD + image upload)
 - About photo (upload/replace/delete)
 - About summary text (edit/save/delete)
 - About CV link (edit/save/delete)
+ - Clients list (add/delete logo & name)
+ - Contact messages (read/unread status, pagination, bulk delete/mark-as-read)
 
 ---
 
@@ -127,6 +130,25 @@ create table if not exists public.portfolio_comments (
   created_at timestamp with time zone default now(),
   is_pinned boolean default false
 );
+
+-- contacts (contact form submissions)
+create table if not exists public.contacts (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  name text not null,
+  email text not null,
+  message text not null,
+  is_read boolean not null default false
+);
+
+-- admin users (for /#admin login)
+create table if not exists public.admin_users (
+  id uuid primary key default gen_random_uuid(),
+  username text not null unique,
+  password text not null,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
 ```
 
 4) Row Level Security (RLS) policies
@@ -147,8 +169,17 @@ create policy if not exists "public delete certificates" on public.certificates 
 
 -- portfolio_comments
 create policy if not exists "public select comments" on public.portfolio_comments for select using (true);
-create policy if not exists "public insert comments" on public.portfolio_comments for insert with check (true);
+create policy if not exists "public insert comments" on public.portfolio_comments for insert using (true) with check (true);
 create policy if not exists "public delete comments" on public.portfolio_comments for delete using (true);
+
+-- contacts (used by Contact page + Admin messages)
+create policy if not exists "public select contacts" on public.contacts for select using (true);
+create policy if not exists "public insert contacts" on public.contacts for insert with check (true);
+create policy if not exists "public update contacts" on public.contacts for update using (true) with check (true);
+create policy if not exists "public delete contacts" on public.contacts for delete using (true);
+
+-- admin_users (only select needed from frontend)
+create policy if not exists "public select admin_users" on public.admin_users for select using (true);
 ```
 
 5) Storage RLS policies

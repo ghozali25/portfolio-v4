@@ -637,14 +637,14 @@ const Admin = () => {
             <div className="absolute -bottom-20 -left-16 w-56 h-56 rounded-full bg-white/10 blur-3xl" />
             <div className="absolute -top-10 right-0 w-40 h-40 rounded-full bg-purple-300/20 blur-3xl" />
             <div className="relative z-10 space-y-4">
-              <h1 className="text-3xl sm:text-4xl font-bold leading-tight">Welcome to Admin Panel</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold leading-tight">Welcome</h1>
               <p className="text-sm sm:text-base text-white/80 max-w-md">
-                Kelola seluruh konten portfolio, project, sertifikat, dan pesan pengunjung dari satu tempat dengan tampilan yang nyaman.
+                Ahmad Ghozali
               </p>
             </div>
             <div className="relative z-10 mt-8 flex flex-wrap gap-3 text-xs text-white/80">
-              <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20">Project Management</span>
-              <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20">Contact Messages</span>
+              <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20">Projects</span>
+              <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20">Certificates</span>
               <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20">Content Control</span>
             </div>
           </div>
@@ -652,8 +652,8 @@ const Admin = () => {
           {/* Right login form */}
           <div className="md:w-1/2 bg-white text-slate-900 px-6 sm:px-10 py-8 flex items-center justify-center">
             <div className="w-full max-w-sm">
-              <h2 className="text-sm font-semibold tracking-[0.2em] text-indigo-500 mb-2">USER LOGIN</h2>
-              <p className="text-xs text-slate-500 mb-6">Masuk menggunakan akun admin yang sudah terdaftar di Supabase.</p>
+              <h2 className="text-xl sm:text-2xl font-bold leading-tight">Login</h2>
+              <p className="text-xs text-slate-500 mb-6">Masuk menggunakan akun admin yang sudah terdaftar.</p>
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-500 mb-1">Username</label>
