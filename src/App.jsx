@@ -1,33 +1,43 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import "./index.css";
-import Home from "./Pages/Home";
-import About from "./Pages/About";
-import AnimatedBackground from "./components/Background";
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import Navbar from "./components/Navbar";
-import Portofolio from "./Pages/Portofolio";
-import ContactPage from "./Pages/Contact";
-import Admin from "./Pages/Admin";
-import ProjectDetails from "./components/ProjectDetail";
-import WelcomeScreen from "./Pages/WelcomeScreen";
 import { AnimatePresence } from 'framer-motion';
+
+const Home = React.lazy(() => import("./Pages/Home"));
+const About = React.lazy(() => import("./Pages/About"));
+const AnimatedBackground = React.lazy(() => import("./components/Background"));
+const Portofolio = React.lazy(() => import("./Pages/Portofolio"));
+const ContactPage = React.lazy(() => import("./Pages/Contact"));
+const Admin = React.lazy(() => import("./Pages/Admin"));
+const ProjectDetails = React.lazy(() => import("./components/ProjectDetail"));
+const WelcomeScreen = React.lazy(() => import("./Pages/WelcomeScreen"));
 
 const LandingPage = ({ showWelcome, setShowWelcome }) => {
   return (
     <>
       <AnimatePresence mode="wait">
         {showWelcome && (
-          <WelcomeScreen onLoadingComplete={() => setShowWelcome(false)} />
+          <Suspense fallback={null}>
+            <WelcomeScreen onLoadingComplete={() => setShowWelcome(false)} />
+          </Suspense>
         )}
       </AnimatePresence>
 
       {!showWelcome && (
         <>
           <Navbar />
-          <AnimatedBackground />
-          <Home />
-          <About />
-          <Portofolio />
-          <ContactPage />
+          <Suspense
+            fallback={
+              <div className="w-full flex justify-center py-10 text-gray-400 text-sm">
+                Loading experience...
+              </div>
+            }
+          >
+            <AnimatedBackground />
+            <Home />
+            <About />
+            <Portofolio />
+            <ContactPage />
+          </Suspense>
           <footer>
             <center>
               <hr className="my-3 border-gray-400 opacity-15 sm:mx-auto lg:my-6 text-center" />
@@ -47,7 +57,15 @@ const LandingPage = ({ showWelcome, setShowWelcome }) => {
 
 const ProjectPageLayout = ({ id }) => (
   <>
-    <ProjectDetails id={id} />
+    <Suspense
+      fallback={
+        <div className="w-full flex justify-center py-10 text-gray-400 text-sm">
+          Loading project details...
+        </div>
+      }
+    >
+      <ProjectDetails id={id} />
+    </Suspense>
     <footer>
       <center>
         <hr className="my-3 border-gray-400 opacity-15 sm:mx-auto lg:my-6 text-center" />
@@ -110,7 +128,15 @@ function App() {
         <ProjectPageLayout id={route.id} />
       )}
       {route.name === 'admin' && (
-        <Admin />
+        <Suspense
+          fallback={
+            <div className="w-full flex justify-center py-10 text-gray-400 text-sm">
+              Loading admin panel...
+            </div>
+          }
+        >
+          <Admin />
+        </Suspense>
       )}
     </>
   );
