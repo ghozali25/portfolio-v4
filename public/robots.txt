@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Block build output and node modules if accidentally exposed
+Disallow: /dist/
+Disallow: /node_modules/
+
+Sitemap: https://hiddenlab.xyz/sitemap.xml
+Sitemap: https://ghozali25.github.io/portfolio-v4/sitemap.xml
