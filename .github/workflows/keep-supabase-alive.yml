@@ -2,29 +2,40 @@ name: keep-supabase-alive
 
 on:
   schedule:
-    - cron: "0 8 */2 * *"
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 jobs:
   ping:
     runs-on: ubuntu-latest
+
+    env:
+      SUPA: ${{ secrets.SUPABASE_ANON_KEY }}
+      URL: https://fukwqchnqhvtdcebdzab.supabase.co
+
     steps:
-      - name: Ping Auth health
+      - name: Auth gateway
         run: |
-          curl --fail --silent --show-error \
-            "https://fukwqchnqhvtdcebdzab.supabase.co/auth/v1/health"
-      - name: Ping Storage health
+          curl --fail -s \
+            -H "apikey: $SUPA" \
+            -H "Authorization: Bearer $SUPA" \
+            "$URL/auth/v1/health"
+
+      - name: Wake DB (projects)
         run: |
-          curl --fail --silent --show-error \
-            "https://fukwqchnqhvtdcebdzab.supabase.co/storage/v1/health"
-      - name: Ping Realtime (optional)
+          curl --fail -s \
+            -H "apikey: $SUPA" \
+            -H "Authorization: Bearer $SUPA" \
+            "$URL/rest/v1/projects?select=id&limit=1"
+
+      - name: Wake DB (certificates)
         run: |
-          curl --silent --show-error \
-            -H "Connection: keep-alive" \
-            "https://fukwqchnqhvtdcebdzab.supabase.co/realtime/v1/" || true
-      - name: Ping PostgREST lightweight select (optional)
+          curl --fail -s \
+            -H "apikey: $SUPA" \
+            "$URL/rest/v1/certificates?select=id&limit=1"
+
+      - name: Storage check (non critical)
         run: |
-          curl --silent --show-error \
-            -H "apikey: sb_publishable_9tnkU8l7Q055GFJgRsb4zw_z3mco425" \
-            -H "Authorization: Bearer sb_publishable_9tnkU8l7Q055GFJgRsb4zw_z3mco425" \
-            "https://fukwqchnqhvtdcebdzab.supabase.co/rest/v1/?select=1" || true
+          curl -s \
+            -H "apikey: $SUPA" \
+            "$URL/storage/v1/health" || true
