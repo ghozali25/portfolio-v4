@@ -12,19 +12,26 @@ jobs:
       - name: Ping Auth health
         run: |
           curl --fail --silent --show-error \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
             "https://fukwqchnqhvtdcebdzab.supabase.co/auth/v1/health"
+
       - name: Ping Storage health
         run: |
           curl --fail --silent --show-error \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             "https://fukwqchnqhvtdcebdzab.supabase.co/storage/v1/health"
-      - name: Ping Realtime (optional)
+
+      - name: Ping Realtime
         run: |
           curl --silent --show-error \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Connection: keep-alive" \
             "https://fukwqchnqhvtdcebdzab.supabase.co/realtime/v1/" || true
-      - name: Ping PostgREST lightweight select (optional)
+
+      - name: Ping PostgREST lightweight select
         run: |
           curl --silent --show-error \
-            -H "apikey: sb_publishable_9tnkU8l7Q055GFJgRsb4zw_z3mco425" \
-            -H "Authorization: Bearer sb_publishable_9tnkU8l7Q055GFJgRsb4zw_z3mco425" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
             "https://fukwqchnqhvtdcebdzab.supabase.co/rest/v1/?select=1" || true
