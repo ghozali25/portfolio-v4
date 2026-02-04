@@ -2,36 +2,34 @@ name: keep-supabase-alive
 
 on:
   schedule:
-    - cron: "0 8 */2 * *"
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 jobs:
   ping:
     runs-on: ubuntu-latest
+
+    env:
+      SUPA: ${{ secrets.SUPABASE_ANON_KEY }}
+      URL: https://fukwqchnqhvtdcebdzab.supabase.co
+
     steps:
-      - name: Ping Auth health
+      - name: Auth check
         run: |
-          curl --fail --silent --show-error \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
-            "https://fukwqchnqhvtdcebdzab.supabase.co/auth/v1/health"
+          curl --fail -s \
+            -H "apikey: $SUPA" \
+            -H "Authorization: Bearer $SUPA" \
+            "$URL/auth/v1/health"
 
-      - name: Ping Storage health
+      - name: Wake DB (real trigger)
         run: |
-          curl --fail --silent --show-error \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            "https://fukwqchnqhvtdcebdzab.supabase.co/storage/v1/health"
+          curl --fail -s \
+            -H "apikey: $SUPA" \
+            -H "Authorization: Bearer $SUPA" \
+            "$URL/rest/v1/?select=1&limit=1"
 
-      - name: Ping Realtime
+      - name: Storage check
         run: |
-          curl --silent --show-error \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Connection: keep-alive" \
-            "https://fukwqchnqhvtdcebdzab.supabase.co/realtime/v1/" || true
-
-      - name: Ping PostgREST lightweight select
-        run: |
-          curl --silent --show-error \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
-            "https://fukwqchnqhvtdcebdzab.supabase.co/rest/v1/?select=1" || true
+          curl --fail -s \
+            -H "apikey: $SUPA" \
+            "$URL/storage/v1/health"
