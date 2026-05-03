@@ -127,7 +127,7 @@ export default function FullWidthTabs() {
   const [showAllCertificates, setShowAllCertificates] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const initialItems = isMobile ? 4 : 6;
-  const [sortAscending, setSortAscending] = useState(true); // true: oldest->newest, false: newest->oldest
+  const [sortAscending, setSortAscending] = useState(false); // true: oldest->newest, false: newest->oldest
 
   useEffect(() => {
     // Initialize AOS once
@@ -207,13 +207,18 @@ export default function FullWidthTabs() {
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-  }, []);
+  }, [sortAscending]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const toggleSort = () => setSortAscending((prev) => !prev);
+  const toggleSort = () => {
+    setSortAscending((prev) => !prev);
+    // Instant UI feedback: reverse current lists
+    setProjects((prev) => prev.slice().reverse());
+    setCertificates((prev) => prev.slice().reverse());
+  };
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -332,12 +337,12 @@ export default function FullWidthTabs() {
           >
             <Tab
               icon={<Code className="mb-2 w-5 h-5 transition-all duration-300" />}
-              label="Projects"
+              label={`Projects (${projects.length})`}
               {...a11yProps(0)}
             />
             <Tab
               icon={<Award className="mb-2 w-5 h-5 transition-all duration-300" />}
-              label="Certificates"
+              label={`Certificates (${certificates.length})`}
               {...a11yProps(1)}
             />
             <Tab
