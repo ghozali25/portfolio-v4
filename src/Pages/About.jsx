@@ -1,9 +1,6 @@
-import React, { useEffect, memo, useMemo, useState, useCallback } from "react"
-import { GitHubCalendar } from 'react-github-calendar'
-import { Tooltip as ReactTooltip } from 'react-tooltip'
-import 'react-tooltip/dist/react-tooltip.css'
+import React, { useEffect, memo, useMemo, useState } from "react"
 import { supabase } from "../lib/supabaseClient"
-import { FileText, Code, Award, Globe, ArrowUpRight, Sparkles, UserCheck, Github } from "lucide-react"
+import { FileText, Code, Award, Globe, ArrowUpRight, Sparkles, UserCheck } from "lucide-react"
 import AOS from 'aos'
 import 'aos/dist/aos.css'
 
@@ -124,17 +121,7 @@ const StatCard = memo(({ icon: Icon, color, value, label, description, animation
 const AboutPage = () => {
   const [aboutSummary, setAboutSummary] = useState("");
   const [cvLink, setCvLink] = useState("");
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  const currentYear = new Date().getFullYear();
-  const years = useMemo(() => {
-    const startYear = 2022; // As per the reference image
-    const result = [];
-    for (let i = currentYear; i >= startYear; i--) {
-      result.push(i);
-    }
-    return result;
-  }, [currentYear]);
   // Memoized calculations
   const { totalProjects, totalCertificates, YearExperience } = useMemo(() => {
     const storedProjects = JSON.parse(localStorage.getItem("projects") || "[]");
@@ -311,86 +298,6 @@ const AboutPage = () => {
             ))}
           </div>
         </a>
-
-        {/* GitHub Contribution Calendar */}
-        <div className="mt-16 sm:mt-20" data-aos="fade-up" data-aos-duration="1000">
-          <div className="relative group overflow-hidden rounded-2xl bg-gray-900/50 backdrop-blur-lg border border-white/10 p-4 sm:p-8">
-            <div className="absolute -z-10 inset-0 bg-gradient-to-br from-[#6366f1]/10 to-[#a855f7]/10 opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-            
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-white/5 border border-white/10 text-white">
-                  <Github className="w-5 h-5 md:w-6 md:h-6" />
-                </div>
-                <div>
-                  <h3 className="text-xl md:text-2xl font-bold text-white">GitHub</h3>
-                  <p className="text-xs md:text-sm text-gray-400">Contributions Stats</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col lg:flex-row items-start gap-8">
-              <div className="flex flex-col items-center flex-1 w-full overflow-hidden github-calendar-container">
-                <GitHubCalendar 
-                  username="ghozali25"
-                  year={selectedYear}
-                  blockSize={12}
-                  blockMargin={4}
-                  fontSize={14}
-                  theme={{
-                    light: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
-                    dark: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
-                  }}
-                  style={{
-                    color: '#9ca3af',
-                  }}
-                  renderBlock={(block, activity) => (
-                    React.cloneElement(block, {
-                      'data-tooltip-id': 'github-tooltip',
-                      'data-tooltip-content': `${activity.count} contributions on ${activity.date}`,
-                    })
-                  )}
-                />
-                <ReactTooltip id="github-tooltip" />
-              </div>
-
-              {/* Year Selection - GitHub Style (Vertical on the right) */}
-              <div className="flex lg:flex-col flex-wrap gap-2 min-w-[100px]">
-                {years.map((year) => (
-                  <button
-                    key={year}
-                    onClick={() => setSelectedYear(year)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 text-left ${
-                      selectedYear === year 
-                      ? 'bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white shadow-lg' 
-                      : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10'
-                    }`}
-                  >
-                    {year}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-8 flex flex-wrap justify-between items-center gap-4 text-xs md:text-sm text-gray-400 border-t border-white/5 pt-6">
-              <div className="flex items-center gap-2">
-                <span>Less</span>
-                <div className="flex gap-1">
-                  <div className="w-3 h-3 rounded-sm bg-[#161b22]"></div>
-                  <div className="w-3 h-3 rounded-sm bg-[#0e4429]"></div>
-                  <div className="w-3 h-3 rounded-sm bg-[#006d32]"></div>
-                  <div className="w-3 h-3 rounded-sm bg-[#26a641]"></div>
-                  <div className="w-3 h-3 rounded-sm bg-[#39d353]"></div>
-                </div>
-                <span>More</span>
-              </div>
-              <div className="flex items-center gap-2 italic">
-                <Sparkles className="w-4 h-4 text-yellow-400" />
-                <span>Scroll to explore contributions</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <style>{`
@@ -409,58 +316,6 @@ const AboutPage = () => {
         }
         .animate-spin-slower {
           animation: spin-slower 8s linear infinite;
-        }
-        .github-calendar-container svg {
-          max-width: 100%;
-        }
-
-        /* Basic blocks styling */
-        .github-calendar-container rect {
-          transition: fill 0.3s;
-        }
-
-        /* 1. Dark Blocks (Empty) - Must be static and ALWAYS visible */
-        .github-calendar-container rect[fill="#161b22"],
-        .github-calendar-container rect[fill="var(--color-calendar-graph-day-bg)"] {
-          animation: none !important;
-          opacity: 1 !important;
-          transform: none !important;
-        }
-
-        /* 2. Green Blocks (Active Contributions) - Falling animation */
-        .github-calendar-container rect:not([fill="#161b22"]):not([fill="var(--color-calendar-graph-day-bg)"]) {
-          animation: dropIn 0.8s ease-out forwards;
-          opacity: 0;
-          transform: translateY(-40px);
-        }
-
-        @keyframes dropIn {
-          0% {
-            opacity: 0;
-            transform: translateY(-40px);
-          }
-          30% {
-            opacity: 1;
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        /* Randomized delays for active blocks only */
-        ${Array.from({ length: 371 }, (_, i) => `
-          .github-calendar-container rect:nth-child(${i + 1}):not([fill="#161b22"]) {
-            animation-delay: ${Math.random() * 2}s;
-          }
-        `).join('')}
-        
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
         }
       `}</style>
     </div>
