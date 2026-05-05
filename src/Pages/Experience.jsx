@@ -70,31 +70,31 @@ const Experience = () => {
 
                     {/* Content Container */}
                     <div className="w-[45%] flex flex-col" data-aos={index % 2 === 0 ? "fade-right" : "fade-left"}>
-                      <div className="bg-white/5 backdrop-blur-xl p-4 md:p-6 rounded-2xl border border-white/10 hover:border-purple-500/50 transition-all duration-300 group shadow-xl">
-                        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-4">
-                          <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center border border-white/10 group-hover:border-purple-500/50 transition-colors">
+                      <div className="bg-white/5 backdrop-blur-xl p-3 md:p-5 rounded-2xl border border-white/10 hover:border-purple-500/50 transition-all duration-300 group shadow-xl">
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-3 mb-3">
+                          <div className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center border border-white/10 group-hover:border-purple-500/50 transition-colors">
                             {exp.company_icon ? (
-                              <img src={exp.company_icon} alt={exp.company} className="w-6 h-6 md:w-8 md:h-8 object-contain" />
+                              <img src={exp.company_icon} alt={exp.company} className="w-5 h-5 md:w-7 md:h-7 object-contain" />
                             ) : (
-                              <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-purple-400" />
+                              <Briefcase className="w-4 h-4 md:w-5 md:h-5 text-purple-400" />
                             )}
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-base md:text-xl font-bold text-white group-hover:text-purple-400 transition-colors break-words">{exp.company}</h3>
-                            <p className="text-xs md:text-base text-purple-400 font-medium break-words">{exp.job_title}</p>
+                            <h3 className="text-sm md:text-lg font-bold text-white group-hover:text-purple-400 transition-colors break-words leading-tight">{exp.company}</h3>
+                            <p className="text-[10px] md:text-sm text-purple-400 font-medium break-words mt-0.5">{exp.job_title}</p>
                           </div>
                         </div>
 
-                        <div className="flex flex-col gap-2 text-[10px] md:text-sm text-slate-400 mb-4">
+                        <div className="flex flex-col gap-1.5 text-[9px] md:text-xs text-slate-400 mb-2">
                           <div className="flex items-center gap-1.5">
-                            <Calendar className="w-3 md:w-4 h-3 md:h-4" />
+                            <Calendar className="w-3 md:w-3.5 h-3 md:h-3.5" />
                             <span>
                               {formatDate(exp.start_date)} - {exp.is_present ? 'Present' : formatDate(exp.end_date)}
                             </span>
                           </div>
                           {exp.location && (
                             <div className="flex items-center gap-1.5">
-                              <MapPin className="w-3 md:w-4 h-3 md:h-4" />
+                              <MapPin className="w-3 md:w-3.5 h-3 md:h-3.5" />
                               <span className="break-words">{exp.location}</span>
                             </div>
                           )}
