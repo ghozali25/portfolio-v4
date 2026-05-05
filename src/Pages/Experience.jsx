@@ -101,14 +101,13 @@ const Experience = () => {
                         )}
                       </div>
 
-                      <div className={`text-slate-300 text-sm leading-relaxed ${index % 2 === 0 ? 'md:text-right' : 'text-left'}`}>
+                      <div className="text-slate-300 text-sm leading-relaxed text-left">
                         {exp.job_description && (
-                          <ul className={`list-none space-y-2 ${index % 2 === 0 ? 'md:items-end' : ''}`}>
+                          <ul className="list-none space-y-2">
                             {exp.job_description.split('\n').map((bullet, i) => (
-                              <li key={i} className="flex gap-2">
-                                <span className={`text-purple-500 mt-1.5 shrink-0 ${index % 2 === 0 ? 'md:hidden' : ''}`}>•</span>
-                                <span className="flex-1">{bullet.trim().startsWith('-') ? bullet.trim().substring(1).trim() : bullet.trim()}</span>
-                                <span className={`text-purple-500 mt-1.5 shrink-0 hidden ${index % 2 === 0 ? 'md:block' : ''}`}>•</span>
+                              <li key={i} className="flex gap-2 text-left">
+                                <span className="text-purple-500 mt-1.5 shrink-0">•</span>
+                                <span className="flex-1 text-left">{bullet.trim().startsWith('-') ? bullet.trim().substring(1).trim() : bullet.trim()}</span>
                               </li>
                             ))}
                           </ul>
