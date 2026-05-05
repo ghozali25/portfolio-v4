@@ -101,7 +101,7 @@ const Experience = () => {
                         )}
                       </div>
 
-                      <div className="text-slate-300 text-sm leading-relaxed text-left">
+                      <div className="text-slate-300 text-sm leading-relaxed text-left hidden md:block">
                         {exp.job_description && (
                           <ul className="list-none space-y-2">
                             {exp.job_description.split('\n').map((bullet, i) => (
