@@ -1037,7 +1037,7 @@ const Admin = () => {
           </div>
           <div className="col-span-1 md:col-span-2">
             <label className="block text-sm text-gray-300 mb-1">Job Description (markdown / list with -)</label>
-            <textarea name="job_description" value={experienceForm.job_description} onChange={handleExperienceChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" rows={4} required />
+            <textarea name="job_description" value={experienceForm.job_description} onChange={handleExperienceChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" rows={4} />
           </div>
           <div className="col-span-1">
             <label className="block text-sm text-gray-300 mb-1">Location (optional)</label>

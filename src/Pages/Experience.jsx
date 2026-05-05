@@ -101,8 +101,8 @@ const Experience = () => {
                         </div>
 
                         {/* Description hidden on mobile, visible on desktop */}
-                        <div className="text-slate-300 text-sm leading-relaxed text-left hidden md:block mt-4">
-                          {exp.job_description && (
+                        {exp.job_description && (
+                          <div className="text-slate-300 text-sm leading-relaxed text-left hidden md:block mt-4">
                             <ul className="list-none space-y-2">
                               {exp.job_description.split('\n').map((bullet, i) => (
                                 <li key={i} className="flex gap-3 text-left">
@@ -113,8 +113,8 @@ const Experience = () => {
                                 </li>
                               ))}
                             </ul>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
