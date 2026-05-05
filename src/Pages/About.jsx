@@ -1,5 +1,5 @@
 import React, { useEffect, memo, useMemo, useState } from "react"
-import * as GitHubCalendarNamespace from 'react-github-calendar';
+import { GitHubCalendar } from 'react-github-calendar'
 import { supabase } from "../lib/supabaseClient"
 import { FileText, Code, Award, Globe, ArrowUpRight, Sparkles, UserCheck, Github } from "lucide-react"
 import AOS from 'aos'
@@ -315,7 +315,7 @@ const AboutPage = () => {
             </div>
 
             <div className="flex justify-center w-full overflow-hidden">
-              <GitHubCalendarNamespace.default 
+              <GitHubCalendar 
                 username="ghozali25"
                 blockSize={12}
                 blockMargin={4}
