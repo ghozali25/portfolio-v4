@@ -101,13 +101,19 @@ const Experience = () => {
                         )}
                       </div>
 
-                      <div className="text-slate-300 text-sm leading-relaxed text-left hidden md:block">
+                      {/* Mobile job description - explicitly hidden on small screens */}
+                      <div className="md:hidden"></div>
+
+                      {/* Desktop job description - visible on medium and above */}
+                      <div className="text-slate-300 text-sm leading-relaxed text-left hidden md:block mt-4">
                         {exp.job_description && (
                           <ul className="list-none space-y-2">
                             {exp.job_description.split('\n').map((bullet, i) => (
                               <li key={i} className="flex gap-3 text-left">
                                 <span className="text-purple-500 shrink-0 select-none">•</span>
-                                <span className="flex-1 text-left leading-relaxed">{bullet.trim().startsWith('-') ? bullet.trim().substring(1).trim() : bullet.trim()}</span>
+                                <span className="flex-1 text-left leading-relaxed">
+                                  {bullet.trim().startsWith('-') ? bullet.trim().substring(1).trim() : bullet.trim()}
+                                </span>
                               </li>
                             ))}
                           </ul>
