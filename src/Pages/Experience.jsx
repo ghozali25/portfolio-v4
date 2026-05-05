@@ -58,20 +58,20 @@ const Experience = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
           </div>
         ) : (
-          <div className="relative">
-            {/* Timeline Line */}
-            <div className="absolute left-0 md:left-1/2 transform md:-translate-x-1/2 h-full w-1 bg-gradient-to-b from-[#6366f1] via-[#a855f7] to-[#6366f1] rounded-full opacity-20"></div>
+            <div className="relative">
+              {/* Timeline Line */}
+              <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 h-full w-0.5 bg-gradient-to-b from-[#6366f1] via-[#a855f7] to-[#6366f1] rounded-full opacity-30"></div>
 
-            <div className="space-y-12">
-              {experiences.map((exp, index) => (
-                <div key={exp.id} className="relative flex flex-col md:flex-row items-center">
-                  {/* Timeline Dot */}
-                  <div className="absolute left-0 md:left-1/2 transform -translate-x-1/2 w-4 h-4 bg-purple-600 rounded-full border-4 border-[#030014] z-10 hidden md:block"></div>
+              <div className="space-y-12">
+                {experiences.map((exp, index) => (
+                  <div key={exp.id} className="relative flex flex-col md:flex-row items-center">
+                    {/* Timeline Dot */}
+                    <div className="absolute left-4 md:left-1/2 transform -translate-x-1/2 w-3 h-3 bg-purple-600 rounded-full border-2 border-[#030014] z-10 md:w-4 md:h-4 md:border-4"></div>
 
                   {/* Content Container */}
                   <div className={`w-full md:w-1/2 ${index % 2 === 0 ? 'md:pr-12 md:text-right' : 'md:pl-12 md:ml-auto'}`} 
                        data-aos={index % 2 === 0 ? "fade-right" : "fade-left"}>
-                    <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl border border-white/10 hover:border-purple-500/50 transition-all duration-300 group shadow-xl">
+                    <div className="bg-white/5 backdrop-blur-xl p-5 md:p-6 rounded-2xl border border-white/10 hover:border-purple-500/50 transition-all duration-300 group shadow-xl ml-8 md:ml-0">
                       <div className={`flex items-center gap-4 mb-4 ${index % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
                         <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center border border-white/10 group-hover:border-purple-500/50 transition-colors">
                           {exp.company_icon ? (
@@ -81,21 +81,21 @@ const Experience = () => {
                           )}
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">{exp.company}</h3>
-                          <p className="text-purple-400 font-medium">{exp.job_title}</p>
+                          <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-purple-400 transition-colors">{exp.company}</h3>
+                          <p className="text-sm md:text-base text-purple-400 font-medium">{exp.job_title}</p>
                         </div>
                       </div>
 
-                      <div className={`flex items-center gap-4 text-sm text-slate-400 mb-4 ${index % 2 === 0 ? 'md:justify-end' : ''}`}>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
+                      <div className={`flex flex-wrap items-center gap-3 md:gap-4 text-xs md:text-sm text-slate-400 mb-4 ${index % 2 === 0 ? 'md:justify-end' : ''}`}>
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" />
                           <span>
                             {formatDate(exp.start_date)} - {exp.is_present ? 'Present' : formatDate(exp.end_date)}
                           </span>
                         </div>
                         {exp.location && (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4" />
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4" />
                             <span>{exp.location}</span>
                           </div>
                         )}
