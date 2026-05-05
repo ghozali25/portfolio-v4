@@ -413,20 +413,25 @@ const AboutPage = () => {
         .github-calendar-container svg {
           max-width: 100%;
         }
-        /* Drop animation for active contribution blocks */
-        .github-calendar-container rect[fill^="#0e4429"],
-        .github-calendar-container rect[fill^="#006d32"],
-        .github-calendar-container rect[fill^="#26a641"],
-        .github-calendar-container rect[fill^="#39d353"] {
+
+        /* Basic blocks styling */
+        .github-calendar-container rect {
+          transition: fill 0.3s;
+        }
+
+        /* 1. Dark Blocks (Empty) - Must be static and ALWAYS visible */
+        .github-calendar-container rect[fill="#161b22"],
+        .github-calendar-container rect[fill="var(--color-calendar-graph-day-bg)"] {
+          animation: none !important;
+          opacity: 1 !important;
+          transform: none !important;
+        }
+
+        /* 2. Green Blocks (Active Contributions) - Falling animation */
+        .github-calendar-container rect:not([fill="#161b22"]):not([fill="var(--color-calendar-graph-day-bg)"]) {
           animation: dropIn 0.8s ease-out forwards;
           opacity: 0;
           transform: translateY(-40px);
-        }
-        
-        /* Keep empty blocks static */
-        .github-calendar-container rect[fill^="#161b22"] {
-          opacity: 1;
-          transform: none;
         }
 
         @keyframes dropIn {
@@ -442,11 +447,11 @@ const AboutPage = () => {
             transform: translateY(0);
           }
         }
-        /* Randomized delays for a natural falling effect (only for active blocks) */
+
+        /* Randomized delays for active blocks only */
         ${Array.from({ length: 371 }, (_, i) => `
-          .github-calendar-container rect:nth-child(${i + 1}):not([fill^="#161b22"]) {
+          .github-calendar-container rect:nth-child(${i + 1}):not([fill="#161b22"]) {
             animation-delay: ${Math.random() * 2}s;
-            animation-duration: ${0.5 + Math.random() * 0.5}s;
           }
         `).join('')}
         
