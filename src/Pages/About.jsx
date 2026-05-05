@@ -317,7 +317,7 @@ const AboutPage = () => {
           <div className="relative group overflow-hidden rounded-2xl bg-gray-900/50 backdrop-blur-lg border border-white/10 p-4 sm:p-8">
             <div className="absolute -z-10 inset-0 bg-gradient-to-br from-[#6366f1]/10 to-[#a855f7]/10 opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
             
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-white/5 border border-white/10 text-white">
                   <Github className="w-5 h-5 md:w-6 md:h-6" />
@@ -327,46 +327,49 @@ const AboutPage = () => {
                   <p className="text-xs md:text-sm text-gray-400">Contributions Stats</p>
                 </div>
               </div>
+            </div>
 
-              <div className="flex flex-wrap md:flex-nowrap items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10 overflow-x-auto no-scrollbar">
+            <div className="flex flex-col lg:flex-row items-start gap-8">
+              <div className="flex flex-col items-center flex-1 w-full overflow-hidden github-calendar-container">
+                <GitHubCalendar 
+                  username="ghozali25"
+                  year={selectedYear}
+                  blockSize={12}
+                  blockMargin={4}
+                  fontSize={14}
+                  theme={{
+                    light: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
+                    dark: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
+                  }}
+                  style={{
+                    color: '#9ca3af',
+                  }}
+                  renderBlock={(block, activity) => (
+                    React.cloneElement(block, {
+                      'data-tooltip-id': 'github-tooltip',
+                      'data-tooltip-content': `${activity.count} contributions on ${activity.date}`,
+                    })
+                  )}
+                />
+                <ReactTooltip id="github-tooltip" />
+              </div>
+
+              {/* Year Selection - GitHub Style (Vertical on the right) */}
+              <div className="flex lg:flex-col flex-wrap gap-2 min-w-[100px]">
                 {years.map((year) => (
                   <button
                     key={year}
                     onClick={() => setSelectedYear(year)}
-                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 text-left ${
                       selectedYear === year 
                       ? 'bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white shadow-lg' 
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10'
                     }`}
                   >
                     {year}
                   </button>
                 ))}
               </div>
-            </div>
-
-            <div className="flex flex-col items-center w-full overflow-hidden github-calendar-container">
-              <GitHubCalendar 
-                username="ghozali25"
-                year={selectedYear}
-                blockSize={12}
-                blockMargin={4}
-                fontSize={14}
-                theme={{
-                  light: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
-                  dark: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
-                }}
-                style={{
-                  color: '#9ca3af',
-                }}
-                renderBlock={(block, activity) => (
-                  React.cloneElement(block, {
-                    'data-tooltip-id': 'github-tooltip',
-                    'data-tooltip-content': `${activity.count} contributions on ${activity.date}`,
-                  })
-                )}
-              />
-              <ReactTooltip id="github-tooltip" />
             </div>
 
             <div className="mt-8 flex flex-wrap justify-between items-center gap-4 text-xs md:text-sm text-gray-400 border-t border-white/5 pt-6">
@@ -410,12 +413,22 @@ const AboutPage = () => {
         .github-calendar-container svg {
           max-width: 100%;
         }
-        /* Drop animation for calendar blocks */
-        .github-calendar-container rect {
+        /* Drop animation for active contribution blocks */
+        .github-calendar-container rect[fill^="#0e4429"],
+        .github-calendar-container rect[fill^="#006d32"],
+        .github-calendar-container rect[fill^="#26a641"],
+        .github-calendar-container rect[fill^="#39d353"] {
           animation: dropIn 0.8s ease-out forwards;
           opacity: 0;
           transform: translateY(-40px);
         }
+        
+        /* Keep empty blocks static */
+        .github-calendar-container rect[fill^="#161b22"] {
+          opacity: 1;
+          transform: none;
+        }
+
         @keyframes dropIn {
           0% {
             opacity: 0;
@@ -429,9 +442,9 @@ const AboutPage = () => {
             transform: translateY(0);
           }
         }
-        /* Randomized delays for a natural falling effect */
+        /* Randomized delays for a natural falling effect (only for active blocks) */
         ${Array.from({ length: 371 }, (_, i) => `
-          .github-calendar-container rect:nth-child(${i + 1}) {
+          .github-calendar-container rect:nth-child(${i + 1}):not([fill^="#161b22"]) {
             animation-delay: ${Math.random() * 2}s;
             animation-duration: ${0.5 + Math.random() * 0.5}s;
           }
