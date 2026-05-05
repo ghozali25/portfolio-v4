@@ -1,5 +1,7 @@
-import React, { useEffect, memo, useMemo, useState } from "react"
+import React, { useEffect, memo, useMemo, useState, useCallback } from "react"
 import { GitHubCalendar } from 'react-github-calendar'
+import { Tooltip as ReactTooltip } from 'react-tooltip'
+import 'react-tooltip/dist/react-tooltip.css'
 import { supabase } from "../lib/supabaseClient"
 import { FileText, Code, Award, Globe, ArrowUpRight, Sparkles, UserCheck, Github } from "lucide-react"
 import AOS from 'aos'
@@ -122,6 +124,17 @@ const StatCard = memo(({ icon: Icon, color, value, label, description, animation
 const AboutPage = () => {
   const [aboutSummary, setAboutSummary] = useState("");
   const [cvLink, setCvLink] = useState("");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  const currentYear = new Date().getFullYear();
+  const years = useMemo(() => {
+    const startYear = 2022; // As per the reference image
+    const result = [];
+    for (let i = currentYear; i >= startYear; i--) {
+      result.push(i);
+    }
+    return result;
+  }, [currentYear]);
   // Memoized calculations
   const { totalProjects, totalCertificates, YearExperience } = useMemo(() => {
     const storedProjects = JSON.parse(localStorage.getItem("projects") || "[]");
@@ -304,19 +317,38 @@ const AboutPage = () => {
           <div className="relative group overflow-hidden rounded-2xl bg-gray-900/50 backdrop-blur-lg border border-white/10 p-4 sm:p-8">
             <div className="absolute -z-10 inset-0 bg-gradient-to-br from-[#6366f1]/10 to-[#a855f7]/10 opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
             
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 rounded-lg bg-white/5 border border-white/10 text-white">
-                <Github className="w-5 h-5 md:w-6 md:h-6" />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-white/5 border border-white/10 text-white">
+                  <Github className="w-5 h-5 md:w-6 md:h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl md:text-2xl font-bold text-white">GitHub</h3>
+                  <p className="text-xs md:text-sm text-gray-400">Contributions Stats</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl md:text-2xl font-bold text-white">GitHub</h3>
-                <p className="text-xs md:text-sm text-gray-400">Contributions Stats</p>
+
+              <div className="flex flex-wrap md:flex-nowrap items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10 overflow-x-auto no-scrollbar">
+                {years.map((year) => (
+                  <button
+                    key={year}
+                    onClick={() => setSelectedYear(year)}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap ${
+                      selectedYear === year 
+                      ? 'bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white shadow-lg' 
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {year}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="flex justify-center w-full overflow-hidden">
+            <div className="flex flex-col items-center w-full overflow-hidden github-calendar-container">
               <GitHubCalendar 
                 username="ghozali25"
+                year={selectedYear}
                 blockSize={12}
                 blockMargin={4}
                 fontSize={14}
@@ -326,24 +358,32 @@ const AboutPage = () => {
                 }}
                 style={{
                   color: '#9ca3af',
-                  maxWidth: '100%',
                 }}
+                renderBlock={(block, activity) => (
+                  React.cloneElement(block, {
+                    'data-tooltip-id': 'github-tooltip',
+                    'data-tooltip-content': `${activity.count} contributions on ${activity.date}`,
+                  })
+                )}
               />
+              <ReactTooltip id="github-tooltip" />
             </div>
 
-            <div className="mt-8 flex flex-wrap justify-center gap-4 text-xs md:text-sm text-gray-400 border-t border-white/5 pt-6">
+            <div className="mt-8 flex flex-wrap justify-between items-center gap-4 text-xs md:text-sm text-gray-400 border-t border-white/5 pt-6">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-sm bg-[#161b22]"></span>
                 <span>Less</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="w-3 h-3 rounded-sm bg-[#0e4429]"></span>
-                <span className="w-3 h-3 rounded-sm bg-[#006d32]"></span>
-                <span className="w-3 h-3 rounded-sm bg-[#26a641]"></span>
-                <span className="w-3 h-3 rounded-sm bg-[#39d353]"></span>
-              </div>
-              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  <div className="w-3 h-3 rounded-sm bg-[#161b22]"></div>
+                  <div className="w-3 h-3 rounded-sm bg-[#0e4429]"></div>
+                  <div className="w-3 h-3 rounded-sm bg-[#006d32]"></div>
+                  <div className="w-3 h-3 rounded-sm bg-[#26a641]"></div>
+                  <div className="w-3 h-3 rounded-sm bg-[#39d353]"></div>
+                </div>
                 <span>More</span>
+              </div>
+              <div className="flex items-center gap-2 italic">
+                <Sparkles className="w-4 h-4 text-yellow-400" />
+                <span>Scroll to explore contributions</span>
               </div>
             </div>
           </div>
@@ -366,6 +406,35 @@ const AboutPage = () => {
         }
         .animate-spin-slower {
           animation: spin-slower 8s linear infinite;
+        }
+        .github-calendar-container svg {
+          max-width: 100%;
+        }
+        /* Drop animation for calendar blocks */
+        .github-calendar-container rect {
+          animation: dropIn 0.5s ease-out forwards;
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        @keyframes dropIn {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        /* Delay each rect slightly for falling effect */
+        ${Array.from({ length: 50 }, (_, i) => `
+          .github-calendar-container rect:nth-child(${i + 1}) {
+            animation-delay: ${i * 0.01}s;
+          }
+        `).join('')}
+        
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
     </div>
