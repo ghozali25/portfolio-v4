@@ -1,6 +1,7 @@
 import React, { useEffect, memo, useMemo, useState } from "react"
+import GitHubCalendar from 'react-github-calendar';
 import { supabase } from "../lib/supabaseClient"
-import { FileText, Code, Award, Globe, ArrowUpRight, Sparkles, UserCheck } from "lucide-react"
+import { FileText, Code, Award, Globe, ArrowUpRight, Sparkles, UserCheck, Github } from "lucide-react"
 import AOS from 'aos'
 import 'aos/dist/aos.css'
 
@@ -297,6 +298,56 @@ const AboutPage = () => {
             ))}
           </div>
         </a>
+
+        {/* GitHub Contribution Calendar */}
+        <div className="mt-16 sm:mt-20" data-aos="fade-up" data-aos-duration="1000">
+          <div className="relative group overflow-hidden rounded-2xl bg-gray-900/50 backdrop-blur-lg border border-white/10 p-4 sm:p-8">
+            <div className="absolute -z-10 inset-0 bg-gradient-to-br from-[#6366f1]/10 to-[#a855f7]/10 opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
+            
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2 rounded-lg bg-white/5 border border-white/10 text-white">
+                <Github className="w-5 h-5 md:w-6 md:h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl md:text-2xl font-bold text-white">GitHub</h3>
+                <p className="text-xs md:text-sm text-gray-400">Contributions Stats</p>
+              </div>
+            </div>
+
+            <div className="flex justify-center w-full overflow-hidden">
+              <GitHubCalendar 
+                username="ghozali25"
+                blockSize={12}
+                blockMargin={4}
+                fontSize={14}
+                theme={{
+                  light: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
+                  dark: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
+                }}
+                style={{
+                  color: '#9ca3af',
+                  maxWidth: '100%',
+                }}
+              />
+            </div>
+
+            <div className="mt-8 flex flex-wrap justify-center gap-4 text-xs md:text-sm text-gray-400 border-t border-white/5 pt-6">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-sm bg-[#161b22]"></span>
+                <span>Less</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded-sm bg-[#0e4429]"></span>
+                <span className="w-3 h-3 rounded-sm bg-[#006d32]"></span>
+                <span className="w-3 h-3 rounded-sm bg-[#26a641]"></span>
+                <span className="w-3 h-3 rounded-sm bg-[#39d353]"></span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>More</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <style>{`
