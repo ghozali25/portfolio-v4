@@ -236,7 +236,7 @@ const Admin = () => {
     setIsAuthed(false);
   };
 
-  // Project form state
+  // Projects state
   const [projectForm, setProjectForm] = useState({
     Title: "",
     Description: "",
@@ -249,6 +249,22 @@ const Admin = () => {
   const [isSavingProject, setIsSavingProject] = useState(false);
   const [projects, setProjects] = useState([]);
   const [editingProjectId, setEditingProjectId] = useState(null);
+
+  // Experience state
+  const [experienceForm, setExperienceForm] = useState({
+    company: "",
+    job_title: "",
+    start_date: "",
+    end_date: "",
+    is_present: false,
+    job_description: "",
+    location: "",
+    company_icon: null,
+  });
+  const [isSavingExperience, setIsSavingExperience] = useState(false);
+  const [experiences, setExperiences] = useState([]);
+  const [editingExperienceId, setEditingExperienceId] = useState(null);
+  const [experienceIconPreview, setExperienceIconPreview] = useState("");
 
   // Certificate form state
   const [certificateImg, setCertificateImg] = useState(null);
@@ -438,8 +454,14 @@ const Admin = () => {
     }
   };
 
+  const loadExperiences = async () => {
+    const { data, error } = await supabase.from('experiences').select('*').order('start_date', { ascending: false });
+    if (error) { console.error(error); return; }
+    setExperiences(data || []);
+  };
+
   const loadData = async () => {
-    await Promise.all([loadProjects(), loadCertificates(), loadClients(), loadContacts(), loadAboutPhoto(), loadAboutSummary(), loadCvLink()]);
+    await Promise.all([loadProjects(), loadCertificates(), loadClients(), loadContacts(), loadAboutPhoto(), loadAboutSummary(), loadCvLink(), loadExperiences()]);
   };
 
   // Helpers
@@ -626,6 +648,133 @@ const Admin = () => {
       console.error(e);
       Swal.fire('Error', e.message || 'Failed to delete messages', 'error');
     }
+  };
+
+  const handleExperienceChange = (e) => {
+    const { name, value, type, checked, files } = e.target;
+    if (type === "checkbox") {
+      setExperienceForm((prev) => ({ ...prev, [name]: checked }));
+    } else if (type === "file") {
+      const file = files?.[0] || null;
+      setExperienceForm((prev) => ({ ...prev, company_icon: file }));
+      if (file) {
+        const url = URL.createObjectURL(file);
+        setExperienceIconPreview(url);
+      } else {
+        setExperienceIconPreview("");
+      }
+    } else {
+      setExperienceForm((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const resetExperienceForm = () => {
+    setExperienceForm({ company: "", job_title: "", start_date: "", end_date: "", is_present: false, job_description: "", location: "", company_icon: null });
+    setEditingExperienceId(null);
+    setExperienceIconPreview("");
+  };
+
+  const onCreateExperience = async (e) => {
+    e.preventDefault();
+    setIsSavingExperience(true);
+    try {
+      let iconUrl = null;
+      if (experienceForm.company_icon) {
+        const filePath = `experiences/${Date.now()}_${experienceForm.company_icon.name}`;
+        const { error: upErr } = await supabase.storage.from('profile-images').upload(filePath, experienceForm.company_icon, { upsert: true });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from('profile-images').getPublicUrl(filePath);
+        iconUrl = pub?.publicUrl;
+      }
+
+      const { error: insErr } = await supabase.from('experiences').insert([{
+        company: experienceForm.company,
+        job_title: experienceForm.job_title,
+        start_date: experienceForm.start_date,
+        end_date: experienceForm.is_present ? null : experienceForm.end_date,
+        is_present: experienceForm.is_present,
+        job_description: experienceForm.job_description,
+        location: experienceForm.location,
+        company_icon: iconUrl
+      }]);
+
+      if (insErr) throw insErr;
+      Swal.fire("Success", "Experience added", "success");
+      resetExperienceForm();
+      await loadExperiences();
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to add experience", "error");
+    } finally {
+      setIsSavingExperience(false);
+    }
+  };
+
+  const startEditExperience = (exp) => {
+    setEditingExperienceId(exp.id);
+    setExperienceForm({
+      company: exp.company || "",
+      job_title: exp.job_title || "",
+      start_date: exp.start_date || "",
+      end_date: exp.end_date || "",
+      is_present: exp.is_present || false,
+      job_description: exp.job_description || "",
+      location: exp.location || "",
+      company_icon: null,
+    });
+    setExperienceIconPreview(exp.company_icon || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const saveEditExperience = async (e) => {
+    e.preventDefault();
+    setIsSavingExperience(true);
+    try {
+      let iconUrl = experienceIconPreview;
+      if (experienceForm.company_icon) {
+        const filePath = `experiences/${Date.now()}_${experienceForm.company_icon.name}`;
+        const { error: upErr } = await supabase.storage.from('profile-images').upload(filePath, experienceForm.company_icon, { upsert: true });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from('profile-images').getPublicUrl(filePath);
+        iconUrl = pub?.publicUrl;
+      }
+
+      const payload = {
+        company: experienceForm.company,
+        job_title: experienceForm.job_title,
+        start_date: experienceForm.start_date,
+        end_date: experienceForm.is_present ? null : experienceForm.end_date,
+        is_present: experienceForm.is_present,
+        job_description: experienceForm.job_description,
+        location: experienceForm.location,
+        company_icon: iconUrl
+      };
+
+      const { error: updErr } = await supabase.from('experiences').update(payload).eq('id', editingExperienceId);
+      if (updErr) throw updErr;
+      Swal.fire("Updated", "Experience updated", "success");
+      resetExperienceForm();
+      await loadExperiences();
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to update experience", "error");
+    } finally {
+      setIsSavingExperience(false);
+    }
+  };
+
+  const deleteExperience = async (exp) => {
+    const res = await Swal.fire({ title: "Delete?", text: exp.company, icon: "warning", showCancelButton: true });
+    if (!res.isConfirmed) return;
+    try {
+      const path = getStoragePathFromUrl(exp.company_icon);
+      if (path) await supabase.storage.from('profile-images').remove([path]);
+    } catch (e) { console.warn(e); }
+
+    const { error } = await supabase.from('experiences').delete().eq('id', exp.id);
+    if (error) { console.error(error); Swal.fire("Error", "Failed to delete", "error"); return; }
+    await loadExperiences();
+    Swal.fire("Deleted", "Experience removed", "success");
   };
 
   return (
@@ -858,6 +1007,86 @@ const Admin = () => {
             </div>
           </>
         )}
+      </div>
+
+      {/* Experience Form */}
+      <div className="bg-[#050315]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-semibold mb-4">{editingExperienceId ? 'Edit Experience' : 'Add Experience'}</h2>
+        <form onSubmit={editingExperienceId ? saveEditExperience : onCreateExperience} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Company</label>
+            <input name="company" value={experienceForm.company} onChange={handleExperienceChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" required />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Job Title</label>
+            <input name="job_title" value={experienceForm.job_title} onChange={handleExperienceChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" required />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Start Date</label>
+            <input name="start_date" type="date" value={experienceForm.start_date} onChange={handleExperienceChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none text-white" required />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">End Date</label>
+            <div className="flex items-center gap-3 h-[52px]">
+              <input name="end_date" type="date" value={experienceForm.end_date} onChange={handleExperienceChange} className="flex-1 p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none text-white disabled:opacity-50" disabled={experienceForm.is_present} required={!experienceForm.is_present} />
+              <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                <input type="checkbox" name="is_present" checked={experienceForm.is_present} onChange={handleExperienceChange} className="accent-[#6366f1]" />
+                Present
+              </label>
+            </div>
+          </div>
+          <div className="col-span-1 md:col-span-2">
+            <label className="block text-sm text-gray-300 mb-1">Job Description (markdown / list with -)</label>
+            <textarea name="job_description" value={experienceForm.job_description} onChange={handleExperienceChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" rows={4} required />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Location (optional)</label>
+            <input name="location" value={experienceForm.location} onChange={handleExperienceChange} className="w-full p-3 rounded-lg bg-white/10 border border-white/10 focus:outline-none" placeholder="Bogor, Indonesia" />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-gray-300 mb-1">Company Icon</label>
+            <input name="company_icon" type="file" accept="image/*" onChange={handleExperienceChange} className="w-full" />
+            {experienceIconPreview && (
+              <div className="mt-3">
+                <img src={experienceIconPreview} alt="preview" className="w-12 h-12 object-contain rounded-lg border border-white/10 p-1 bg-white/5" />
+              </div>
+            )}
+          </div>
+          <div className="col-span-1 md:col-span-2 mt-2 flex gap-3">
+            <button type="submit" disabled={isSavingExperience} className="relative px-6 py-3 rounded-lg overflow-hidden disabled:opacity-60 group">
+              <span className="absolute inset-0 bg-gradient-to-r from-[#6366f1] via-[#a855f7] to-[#ec4899] bg-[length:200%_100%] group-hover:bg-[position:100%_0] transition-[background-position] duration-500" />
+              <span className="relative z-10">{isSavingExperience ? 'Saving...' : (editingExperienceId ? 'Update Experience' : 'Save Experience')}</span>
+            </button>
+            {editingExperienceId && (
+              <button type="button" onClick={resetExperienceForm} className="px-6 py-3 rounded-lg bg-white/10 border border-white/10">Cancel</button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {/* Experience List */}
+      <div className="bg-[#050315]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-semibold mb-4">Experience List</h2>
+        <div className="space-y-4">
+          {experiences.map((exp) => (
+            <div key={exp.id} className="p-4 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center p-1">
+                  {exp.company_icon ? <img src={exp.company_icon} alt="icon" className="w-full h-full object-contain" /> : <div className="text-xs text-gray-500">No Icon</div>}
+                </div>
+                <div>
+                  <h3 className="font-semibold">{exp.company}</h3>
+                  <p className="text-xs text-gray-400">{exp.job_title} | {new Date(exp.start_date).toLocaleDateString()} - {exp.is_present ? 'Present' : (exp.end_date ? new Date(exp.end_date).toLocaleDateString() : '-')}</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => startEditExperience(exp)} className="px-3 py-1 rounded bg-white/10 text-xs">Edit</button>
+                <button onClick={() => deleteExperience(exp)} className="px-3 py-1 rounded bg-red-500/20 text-red-300 text-xs">Delete</button>
+              </div>
+            </div>
+          ))}
+          {experiences.length === 0 && <p className="text-gray-400">Belum ada experience.</p>}
+        </div>
       </div>
 
       {/* Project Form */}

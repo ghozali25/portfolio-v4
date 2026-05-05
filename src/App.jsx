@@ -6,6 +6,7 @@ const Home = React.lazy(() => import("./Pages/Home"));
 const About = React.lazy(() => import("./Pages/About"));
 const AnimatedBackground = React.lazy(() => import("./components/Background"));
 const Portofolio = React.lazy(() => import("./Pages/Portofolio"));
+const Experience = React.lazy(() => import("./Pages/Experience"));
 const ContactPage = React.lazy(() => import("./Pages/Contact"));
 const Admin = React.lazy(() => import("./Pages/Admin"));
 const ProjectDetails = React.lazy(() => import("./components/ProjectDetail"));
@@ -35,6 +36,7 @@ const LandingPage = ({ showWelcome, setShowWelcome }) => {
             <AnimatedBackground />
             <Home />
             <About />
+            <Experience />
             <Portofolio />
             <ContactPage />
           </Suspense>
