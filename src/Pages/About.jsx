@@ -412,20 +412,28 @@ const AboutPage = () => {
         }
         /* Drop animation for calendar blocks */
         .github-calendar-container rect {
-          animation: dropIn 0.5s ease-out forwards;
+          animation: dropIn 0.8s ease-out forwards;
           opacity: 0;
-          transform: translateY(-20px);
+          transform: translateY(-40px);
         }
         @keyframes dropIn {
-          to {
+          0% {
+            opacity: 0;
+            transform: translateY(-40px);
+          }
+          30% {
+            opacity: 1;
+          }
+          100% {
             opacity: 1;
             transform: translateY(0);
           }
         }
-        /* Delay each rect slightly for falling effect */
-        ${Array.from({ length: 50 }, (_, i) => `
+        /* Randomized delays for a natural falling effect */
+        ${Array.from({ length: 371 }, (_, i) => `
           .github-calendar-container rect:nth-child(${i + 1}) {
-            animation-delay: ${i * 0.01}s;
+            animation-delay: ${Math.random() * 2}s;
+            animation-duration: ${0.5 + Math.random() * 0.5}s;
           }
         `).join('')}
         
